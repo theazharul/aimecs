@@ -39,4 +39,4 @@
   (setq flycheck-indication-mode 'right-fringe)
   (setq flycheck-highlighting-mode 'symbols))
 
-(provide 'lsp-base-config)
+(provide 'lsp-config)
