@@ -102,6 +102,7 @@
 
 ;; Load UI Configs
 (load-config ui-config-dir "doom-themes.el")
+(load-config ui-config-dir "fonts.el")
 (load-config ui-config-dir "all-the-icons.el")
 (load-config ui-config-dir "rainbow-delimiters.el")
 (load-config ui-config-dir "highlight-indent-guides.el")
