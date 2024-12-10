@@ -17,7 +17,7 @@
   (when (file-exists-p font-file)
     (message "Installing font %s..." font-name)
     (set-fontset-font t 'unicode font-file nil 'prepend)
-    (set-face-attribute 'default nil :font font-name :height 150)
+    (set-face-attribute 'default nil :font font-name :height 140)
     (message "Font %s installed and applied." font-name)))
 
 (defun my/load-source-code-pro-font ()
