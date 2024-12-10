@@ -39,73 +39,87 @@
 
 
 ;; Define configuration directories
+(setq config-directories
+      `((core . ,(expand-file-name "config/core" user-emacs-directory))
+        (editing . ,(expand-file-name "config/editing" user-emacs-directory))
+        (languages . ,(expand-file-name "config/languages" user-emacs-directory))
+        (frameworks . ,(expand-file-name "config/frameworks" user-emacs-directory))
+        (ui . ,(expand-file-name "config/ui" user-emacs-directory))
+        (keybindings . ,(expand-file-name "config/keybindings" user-emacs-directory))
+        (autocompletion . ,(expand-file-name "config/autocompletion" user-emacs-directory))))
 
-(defvar core-config-dir (expand-file-name "config/core" user-emacs-directory))
-(defvar editing-config-dir (expand-file-name "config/editing" user-emacs-directory))
-(defvar languages-config-dir (expand-file-name "config/languages" user-emacs-directory))
-(defvar frameworks-config-dir (expand-file-name "config/frameworks" user-emacs-directory))
-(defvar ui-config-dir (expand-file-name "config/ui" user-emacs-directory))
-(defvar keybindings-config-dir (expand-file-name "config/keybindings" user-emacs-directory))
-(defvar autocompletion-config-dir (expand-file-name "config/autocompletion" user-emacs-directory))
+;; Helper function for logging errors
+(defun log-error (message &rest args)
+  "Log an error MESSAGE with ARGS to *Messages* buffer."
+  (message "[Error] %s" (apply 'format message args)))
 
+;; Helper function to load files lazily
+(defun lazy-load-config (file-path)
+  "Lazy load a FILE-PATH if it exists."
+  (if (file-exists-p file-path)
+      (condition-case err
+          (load file-path nil 'nomessage)
+        (error (log-error "Failed to load %s: %s" file-path (error-message-string err))))
+    (log-error "File not found: %s" file-path)))
 
-;; Helper function to load a specific configuration file
-(defun load-config (directory file)
-  "Load a configuration FILE from DIRECTORY if it exists."
-  (let ((file-path (expand-file-name file directory)))
-    (when (file-exists-p file-path)
-      (load file-path))))
+;; Load multiple configurations from a category
+(defun load-configs (category files)
+  "Load a list of FILES lazily from a CATEGORY in `config-directories`."
+  (let ((directory (cdr (assoc category config-directories))))
+    (if directory
+        (dolist (file files)
+          (let ((file-path (expand-file-name file directory)))
+            (lazy-load-config file-path)))
+      (log-error "Directory not found for category: %s" category))))
 
-;; Load core configuration files
-(load-config core-config-dir "lsp-installation.el")  ;; Install LSP servers only when needed
+;; Load configurations
+(load-configs 'core
+              '("lsp-installation.el"
+		"lsp.el"
+		"ui.el"
+		"keybindings.el"
+		"org.el"
+                "projectile.el"
+		"which-key.el"
+		"hydra.el"
+		"ivy.el"
+		"magit.el"
+                "yasnippet.el"
+		"flycheck.el"
+		"editorconfig.el"
+		"treemacs.el"
+                "dashboard.el"))
 
-;; Explicitly load core configuration files
-(load-config core-config-dir "lsp.el")
-(load-config core-config-dir "ui.el")
-(load-config core-config-dir "keybindings.el")
-(load-config core-config-dir "org.el")
-(load-config core-config-dir "projectile.el")
-(load-config core-config-dir "which-key.el")
-(load-config core-config-dir "hydra.el")
-(load-config core-config-dir "ivy.el")
-(load-config core-config-dir "magit.el")
-(load-config core-config-dir "yasnippet.el")
-(load-config core-config-dir "flycheck.el")
-(load-config core-config-dir "editorconfig.el")
-(load-config core-config-dir "treemacs.el")
-(load-config core-config-dir "dashboard.el")
+(load-configs 'editing
+              '("multiple-cursors.el"
+		"expand-region.el"
+		"smartparens.el"
+		"undo-tree.el"))
 
-;; Load Editing Configs
-(load-config editing-config-dir "multiple-cursors.el")
-(load-config editing-config-dir "expand-region.el")
-(load-config editing-config-dir "smartparens.el")
-(load-config editing-config-dir "undo-tree.el")
+(load-configs 'keybindings
+              '("leader.el"))
 
-;; Load UI and keybinding configurations
-(load-config keybindings-config-dir "leader.el")  ;; for leader key setup
+(load-configs 'autocompletion
+              '("company.el"))
 
-;; Load autocompletion configuration
-(load-config autocompletion-config-dir "company.el")  ;; for company-mode
+(load-configs 'languages
+              '("elixir.el"
+		"python.el"
+		"javascript.el"
+		"dart.el"
+		"web.el"))
 
+(load-configs 'frameworks
+              '("flutter.el"
+		"phoenix.el"
+		"liveview.el"))
 
-;; Explicitly load language-specific configuration files
-(load-config languages-config-dir "elixir.el")
-(load-config languages-config-dir "python.el")
-(load-config languages-config-dir "javascript.el")
-(load-config languages-config-dir "dart.el")
-(load-config languages-config-dir "web.el")  ;; HTML, CSS, JS
-
-;; Explicitly load framework-specific configuration files
-(load-config frameworks-config-dir "flutter.el")
-(load-config frameworks-config-dir "phoenix.el")
-(load-config frameworks-config-dir "liveview.el")
-
-;; Load UI Configs
-(load-config ui-config-dir "doom-themes.el")
-(load-config ui-config-dir "fonts.el")
-(load-config ui-config-dir "all-the-icons.el")
-(load-config ui-config-dir "rainbow-delimiters.el")
-(load-config ui-config-dir "highlight-indent-guides.el")
+(load-configs 'ui
+              '("doom-themes.el"
+		"fonts.el"
+		"all-the-icons.el"
+                "rainbow-delimiters.el"
+		"highlight-indent-guides.el"))
 
 
 ;; Set custom file for auto-generated settings
