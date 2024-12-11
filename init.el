@@ -70,7 +70,6 @@
 	 ("lsp-installation.el"
 	  "lsp.el"
 	  "files.el"
-	  "general.el"
 	  "ui.el"
 	  "keybindings.el"
           "org.el"
@@ -82,6 +81,7 @@
 	  "yasnippet.el"
 	  "flycheck.el"
           "editorconfig.el"
+	  "settings.el"
 	  "treemacs.el"
 	  "dashboard.el"))
 
