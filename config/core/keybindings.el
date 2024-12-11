@@ -9,9 +9,6 @@
     :prefix "SPC"    ;; Leader key is SPC
     :global-prefix "M-m"))  ;; Global prefix (Alt+m) if you want to use it outside Evil
 
-;; Example of binding a leader key for projectile search
-(my-leader-def
-  "/" 'projectile-ripgrep)  ;; Use SPC / for searching in Projectile projects
 
 ;; File-related operations under 'f'
 (my-leader-def

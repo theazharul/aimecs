@@ -17,11 +17,12 @@
 (setq org-pretty-entities t)
 
 ;; Optional: Enable org-appear for better visibility handling
-(straight-use-package 'org-appear)  ;; Install org-appear if not already done
+(use-package org-appear
+  :straight t
+  :config
+  (add-hook 'org-mode-hook #'org-appear-mode))
 
-(with-eval-after-load 'org
-  (add-hook 'org-mode-hook 'org-appear-mode))  ;; Activate org-appear mode for better visibility cycling
-
+;; Org-Superstar for better headline and item bullet aesthetics
 (use-package org-superstar
   :straight t
   :hook (org-mode . org-superstar-mode)
@@ -31,6 +32,7 @@
   (org-hide-leading-stars t)        ;; Hide leading stars
   (org-superstar-leading-bullet ?\s)) ;; Use a space for leading stars
 
+;; Define leader keybindings for Org mode
 (my-leader-def
   "o"  '(:ignore t :which-key "org") ;; Group Org mode commands under 'o'
   "o a" 'org-agenda                ;; Open the Org agenda
@@ -40,3 +42,5 @@
   "o s" 'org-schedule              ;; Schedule a task
   "o d" 'org-deadline              ;; Set a deadline for a task
 )
+
+(provide 'org)

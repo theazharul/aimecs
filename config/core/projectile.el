@@ -20,8 +20,9 @@
   ;; Keybindings
   (define-key projectile-mode-map (kbd "C-c p") 'projectile-command-map)
 
-  (my-leader-def
-  "p" 'projectile-command-map)  ;; Use SPC p for Projectile commands
+(my-leader-def
+  "p" 'projectile-command-map  ;; Use SPC p for Projectile commands
+  "/" 'projectile-ripgrep)     ;; Bind / to projectile-ripgrep under Projectile commands
 
 
 
