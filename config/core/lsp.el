@@ -5,11 +5,14 @@
   (setq lsp-keymap-prefix "C-c l")        ;; Keymap prefix for LSP commands
   :hook
   ((prog-mode . lsp-deferred))            ;; Enable LSP for programming modes
+                     
   :commands lsp lsp-deferred
   :config
   (setq lsp-enable-snippet nil)           ;; Disable snippet support
   (setq lsp-enable-file-watchers nil)     ;; Disable file watchers for performance
-  (setq lsp-headerline-breadcrumb-enable t)) ;; Enable breadcrumb in headerline
+  (setq lsp-headerline-breadcrumb-enable t) ;; Enable breadcrumb in headerline
+  (setq lsp-format-on-save t)             ;; Ensure format on save is enabled
+  )
 
 ;; Optional UI Enhancements for LSP
 (use-package lsp-ui
