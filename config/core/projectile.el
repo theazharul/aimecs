@@ -20,6 +20,11 @@
   ;; Keybindings
   (define-key projectile-mode-map (kbd "C-c p") 'projectile-command-map)
 
+  (my-leader-def
+  "p" 'projectile-command-map)  ;; Use SPC p for Projectile commands
+
+
+
   ;; Optional: Integrate with Ivy for better completion
   (use-package counsel-projectile
     :ensure t

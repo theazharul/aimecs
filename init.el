@@ -69,6 +69,8 @@
       '((core
 	 ("lsp-installation.el"
 	  "lsp.el"
+	  "files.el"
+	  "general.el"
 	  "ui.el"
 	  "keybindings.el"
           "org.el"

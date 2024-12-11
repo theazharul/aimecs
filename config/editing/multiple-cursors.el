@@ -1,7 +1,9 @@
-(straight-use-package 'multiple-cursors)
-(use-package multiple-cursors
+(straight-use-package 'evil-mc)
+(use-package evil-mc
   :ensure t
-  :bind (("C-c m c" . mc/edit-lines)
-         ("C-c m n" . mc/mark-next-like-this)
-         ("C-c m p" . mc/mark-previous-like-this)))
+  :config
+  ;; Enable evil-mc globally
+  (global-evil-mc-mode 1)
+  )
+
 (provide 'multiple-cursors-config)
