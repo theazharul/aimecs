@@ -1,23 +1,19 @@
 ;;; Org config
 (require 'org)
 
-;; Basic Org Settings
-(setq org-use-sub-superscripts '{}                  ;; Disable subscripts globally
-      org-log-done t                               ;; Log completion of tasks
-      org-startup-indented t                       ;; Start Org with indented content (better readability)
-      org-hide-leading-stars t                     ;; Hide leading stars in headings
-      org-pretty-entities t                        ;; Display pretty entities (e.g., Greek letters)
-      org-directory "~/Dropbox/aimacs/aimorg"      ;; Org directory
-      org-mobile-directory "~/Dropbox/aimacs/aimorg"
-      org-src-fontify-natively t                   ;; Syntax highlighting in source blocks
-      org-src-tab-acts-natively t                  ;; TAB acts natively in source blocks
-      org-src-window-setup 'current-window         ;; Use current window for editing source blocks
-      org-agenda-start-on-weekday 5                ;; Start agenda on Friday
-      org-default-notes-file (concat org-directory "/0. Inbox.org")) ;; Default notes file
-
 (with-eval-after-load 'org
-  ;; Org-specific configurations after org is loaded
-  (setq org-startup-indented nil                    ;; Disable startup indentation (override above)
+  (setq org-use-sub-superscripts '{}                  ;; Disable subscripts globally
+	org-log-done t                               ;; Log completion of tasks
+	org-startup-indented t                       ;; Start Org with indented content (better readability)
+	org-hide-leading-stars t                     ;; Hide leading stars in headings
+	org-pretty-entities t                        ;; Display pretty entities (e.g., Greek letters)
+	org-directory "~/Dropbox/aimacs/aimorg"      ;; Org directory
+	org-mobile-directory "~/Dropbox/aimacs/aimorg"
+	org-src-fontify-natively t                   ;; Syntax highlighting in source blocks
+	org-src-tab-acts-natively t                  ;; TAB acts natively in source blocks
+	org-src-window-setup 'current-window         ;; Use current window for editing source blocks
+	org-agenda-start-on-weekday 5                ;; Start agenda on Friday
+	org-default-notes-file (concat org-directory "/0. Inbox.org") ;; Default notes file
         org-special-ctrl-a/e t                      ;; Enable special C-a and C-e behavior
         org-agenda-files (append
                           (directory-files-recursively "~/Dropbox/aimacs/aimorg/" "\\.org$")
