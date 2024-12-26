@@ -16,6 +16,10 @@
 (straight-use-package 'use-package) ;; Ensure `use-package` is installed
 (straight-use-package 'org)        ;; Ensure the latest version of Org mode
 
+;; Load keybindings before evil
+(load (expand-file-name "config/core/keybindings.el" user-emacs-directory))
+
+
 ;; Initialize Evil mode
 (use-package evil
   :init
@@ -37,7 +41,6 @@
         (languages . ,(expand-file-name "config/languages" user-emacs-directory))
         (frameworks . ,(expand-file-name "config/frameworks" user-emacs-directory))
         (ui . ,(expand-file-name "config/ui" user-emacs-directory))
-        (keybindings . ,(expand-file-name "config/keybindings" user-emacs-directory))
         (autocompletion . ,(expand-file-name "config/autocompletion" user-emacs-directory))))
 
 ;; Helper: Log errors
@@ -71,12 +74,13 @@
 	  "lsp.el"
 	  "files.el"
 	  "ui.el"
-	  "keybindings.el"
           "org.el"
+	  "pdf.el"
 	  "projectile.el"
 	  "which-key.el"
 	  "hydra.el"
           "ivy.el"
+	  "latex.el"
 	  "magit.el"
 	  "yasnippet.el"
 	  "flycheck.el"
@@ -91,18 +95,17 @@
 	  "smartparens.el"
 	  "undo-tree.el"))
 
-        (keybindings
-	 ("leader.el"))
 
         (autocompletion
 	 ("company.el"))
 
         (languages
-	 ("elixir.el"
+	 ("web.el"
+	  "elixir.el"
 	  "python.el"
 	  "javascript.el"
 	  "dart.el"
-	  "web.el"))
+	  ))
 
         (frameworks
 	 ("flutter.el"

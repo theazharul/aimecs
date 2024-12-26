@@ -10,3 +10,6 @@
                   eshell-mode-hook
                   term-mode-hook))
     (add-hook mode (lambda () (display-line-numbers-mode 0)))))
+
+  (setq select-enable-clipboard t)
+  (setq select-enable-primary t)

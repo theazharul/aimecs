@@ -1,17 +1,20 @@
-;; Elixir Configuration
+;; Elixir Mode Configuration for LSP and Formatting
+(use-package elixir-mode
+  :straight t
+  :mode ("\\.ex\\'" "\\.exs\\'")
+  :hook (elixir-mode . lsp-deferred)
+  :config
+  ;; Ensure elixir-mode is mapped to the correct languageId
+  (with-eval-after-load 'lsp-mode
+    (add-to-list 'lsp-language-id-configuration '(elixir-mode . "elixir"))))
 
-;; Ensure LSP is loaded
-(when (featurep 'lsp-config)
-  (straight-use-package 'elixir-mode)
-  (require 'elixir-mode)
+;; Optional: Elixir Language Server (elixir-ls) setup
+(use-package lsp-elixir
+  :straight t
+  :after lsp-mode
+  :config
+  (setq lsp-elixir-dialyzer-enabled nil   ;; Disable Dialyzer for performance
+        lsp-elixir-fetch-deps nil        ;; Do not fetch project dependencies
+        lsp-elixir-suggest-specs t))     ;; Enable suggestions for specs
 
-  ;; Setup LSP for Elixir
-  (add-hook 'elixir-mode-hook #'lsp)
-
-  ;; Format on save
-  (add-hook 'before-save-hook 'elixir-lsp-format-buffer))
-
-(defun elixir-lsp-format-buffer ()
-  "Run `lsp-format-buffer` if LSP is available."
-  (when (eq major-mode 'elixir-mode)
-    (lsp-format-buffer)))
+(provide 'elixir-heex-config)
