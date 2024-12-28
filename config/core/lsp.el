@@ -5,7 +5,7 @@
   (setq lsp-keymap-prefix "C-c l")          ;; Keymap prefix for LSP commands
   (setq lsp-completion-provider :capf)      ;; Use native completion-at-point (capf) for completions
   :hook
-  ((php-mode dart-mode python-mode js-mode elixir-mode) . lsp-deferred) ;; Enable LSP for specific modes
+  ((php-mode dart-mode python-mode js-mode elixir-mode web-mode) . lsp-deferred) ;; Enable LSP for specific modes
   :commands lsp lsp-deferred
   :config
   (setq lsp-enable-snippet t)               ;; Enable snippet support
@@ -18,6 +18,12 @@
   (setq lsp-diagnostics-provider :flycheck) ;; Use Flycheck for diagnostics, improving accuracy
   (setq lsp-diagnostics-max-number 100)     ;; Limit the number of diagnostics shown
   (setq lsp-file-watch-threshold 500))      ;; Limit the number of watched files
+
+;; Associate .heex and .html.heex files with Elixir mode in LSP
+(with-eval-after-load 'lsp-mode
+  (add-to-list 'lsp-language-id-configuration '("\\.heex\\'" . "elixir"))
+  (add-to-list 'lsp-language-id-configuration '("\\.html.heex\\'" . "elixir")))
+
 
 ;; Optional UI Enhancements for LSP
 (use-package lsp-ui

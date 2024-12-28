@@ -1,56 +1,74 @@
-;; Elixir Mode Configuration for LSP, Phoenix, and LiveView
+;; Elixir Mode Configuration for LSP and Phoenix LiveView
 (use-package elixir-mode
   :straight t
-  :mode ("\\.ex\\'" "\\.exs\\'")
-  :hook (elixir-mode . lsp-deferred)         ;; Enable LSP for Elixir mode
+  :mode ("\\.ex\\'" "\\.exs\\'" "\\.html\\.heex\\'" "\\.heex\\'")
+  :hook
+  ((elixir-mode . lsp-deferred)  ;; Enable LSP for Elixir
+   (elixir-mode . emmet-mode)   ;; Enable Emmet mode
+   (elixir-mode . (lambda ()    ;; Prettify symbols
+                    (setq prettify-symbols-alist
+                          '((">=" . ?\u2265) ("<=" . ?\u2264)
+                            ("!=" . ?\u2260) ("==" . ?\u2A75)
+                            ("=~" . ?\u2245) ("<-" . ?\u2190)
+                            ("->" . ?\u2192) ("|>" . ?\u25B7)))
+                    (prettify-symbols-mode 1))))
   :config
+  ;; Register .heex files as Elixir for LSP
   (with-eval-after-load 'lsp-mode
-    (add-to-list 'lsp-language-id-configuration '(elixir-mode . "elixir")))) ;; Ensure LSP knows it's Elixir
+    (add-to-list 'lsp-language-id-configuration '(elixir-mode . "elixir"))
+    (add-to-list 'lsp-language-id-configuration '(web-mode . "html"))))
 
-;; Elixir Language Server (elixir-ls) setup
+;; LSP Configuration for Elixir Language Server
 (use-package lsp-elixir
   :straight t
   :after lsp-mode
   :config
-  (setq lsp-elixir-dialyzer-enabled nil   ;; Disable Dialyzer for performance optimization
-        lsp-elixir-fetch-deps nil        ;; Do not fetch project dependencies automatically
-        lsp-elixir-suggest-specs t))     ;; Enable suggestions for Elixir specs
+  (setq lsp-elixir-dialyzer-enabled nil
+        lsp-elixir-fetch-deps nil
+        lsp-elixir-suggest-specs t))
 
-;; Project-specific ElixirLS Configuration
-(defun my-elixir-setup ()
-  "Set up ElixirLS for the current project."
-  (let ((project-root (lsp-workspace-root)))
-    (setq-local lsp-elixir-server-command
-                (list (concat project-root "/.elixir-ls/release/language_server.sh")))))
-
-(add-hook 'elixir-mode-hook #'my-elixir-setup)
-
-;; Phoenix LiveView Support for .leex and .heex files
+;; Phoenix LiveView Configuration
 (use-package phoenix-liveview
   :straight t
-  :mode ("\\.leex\\'" "\\.heex\\'")          ;; Recognize Phoenix LiveView templates
-  :hook ((elixir-mode . lsp-deferred)         ;; Enable LSP for LiveView templates
-         (phoenix-liveview-mode . lsp-deferred))
+  :mode ("\\.leex\\'" "\\.heex\\'")
+  :hook (phoenix-liveview-mode . lsp-deferred)
   :config
-  (setq phoenix-liveview-enable-lsp t)       ;; Enable LSP for Phoenix LiveView templates
-  (setq phoenix-liveview-flycheck-mode t))    ;; Enable Flycheck for LiveView templates
+  (setq phoenix-liveview-enable-lsp t
+        phoenix-liveview-flycheck-mode t))
 
-;; Format Elixir code and Phoenix templates on save
+;; Formatting Elixir Code on Save
 (defun my-elixir-format-buffer ()
-  "Format the current Elixir buffer using LSP or `mix format`."
+  "Format the current Elixir buffer."
   (when (and (bound-and-true-p lsp-mode)
              (lsp-feature? "textDocument/formatting"))
-    (lsp-format-buffer)))  ;; Format the buffer in-place
-
+    (lsp-format-buffer)))
 (add-hook 'elixir-mode-hook
           (lambda ()
-            (add-hook 'before-save-hook #'my-elixir-format-buffer nil t))) ;; Format on save
+            (add-hook 'before-save-hook #'my-elixir-format-buffer nil t)))
 
-;; Syntax Checking with Flycheck for Elixir and Phoenix
+;; Polymode for Elixir Templates with ~H
+(use-package polymode
+  :straight t
+  :config
+  (define-hostmode poly-elixir-hostmode :mode 'elixir-mode)
+  (define-innermode poly-liveview-elixir-innermode
+    :mode 'web-mode
+    :head-matcher (rx line-start (* space) "~H" (= 3 (char "\"'")) line-end)
+    :tail-matcher (rx line-start (* space) (= 3 (char "\"'")) line-end)
+    :head-mode 'host
+    :tail-mode 'host
+    :allow-nested nil
+    :keep-in-mode 'host
+    :fallback-mode 'host)
+  (define-polymode poly-elixir-web-mode
+    :hostmode 'poly-elixir-hostmode
+    :innermodes '(poly-liveview-elixir-innermode)))
+
+;; Flycheck for Elixir
 (use-package flycheck
   :straight t
   :hook (elixir-mode . flycheck-mode)
   :config
-  (setq flycheck-checker 'elixir-credo)           ;; Use Elixir Credo for static analysis
-  (setq flycheck-indication-mode 'right-fringe    ;; Show error indicators in the right fringe
-        flycheck-highlighting-mode 'symbols))      ;; Highlight syntax errors
+  (setq flycheck-checker 'elixir-credo
+        flycheck-indication-mode 'right-fringe
+        flycheck-highlighting-mode 'symbols))
