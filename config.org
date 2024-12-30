@@ -2,332 +2,311 @@
 #+AUTHOR: Azhar Ibn Mostafiz
 #+OPTIONS: toc:2
 
-* TABLE OF CONTENT :toc: 
+* TABLE OF CONTENT :toc:
+- [[#initialization-and-setup][Initialization and Setup]]
+- [[#evil][Evil]]
+- [[#basic-configuration][Basic Configuration]]
+- [[#user-interface-and-appearance][User Interface and Appearance]]
+- [[#themes-and-fonts][Themes and Fonts]]
+- [[#keybindings][Keybindings]]
+- [[#org][Org]]
+- [[#projectile][Projectile]]
+- [[#lsp-and-programming][LSP and Programming]]
+- [[#rest][Rest]]
 
 * Initialization and Setup
 #+begin_src emacs-lisp
 ;; Bootstrap straight.el
 (setq bootstrap-version 6)
 (let ((bootstrap-file (expand-file-name "straight/repos/straight.el/bootstrap.el" user-emacs-directory))
-(bootstrap-url "https://raw.githubusercontent.com/radian-software/straight.el/develop/install.el"))
-(unless (file-exists-p bootstrap-file)
-(with-current-buffer
-(url-retrieve-synchronously bootstrap-url 'silent 'inhibit-cookies)
-(goto-char (point-max))
-(eval-print-last-sexp)))
-(load bootstrap-file nil 'nomessage))
+      (bootstrap-url "https://raw.githubusercontent.com/radian-software/straight.el/develop/install.el"))
+  (unless (file-exists-p bootstrap-file)
+    (with-current-buffer
+        (url-retrieve-synchronously bootstrap-url 'silent 'inhibit-cookies)
+      (goto-char (point-max))
+      (eval-print-last-sexp)))
+  (load bootstrap-file nil 'nomessage))
 
 ;; Use straight.el by default for all packages
 (setq straight-use-package-by-default t)
 
 ;; Ensure essential packages
-(straight-use-package 'use-package) ;; Ensure `use-package` is installed
-(straight-use-package 'org)        ;; Ensure the latest version of Org mode
+(straight-use-package 'use-package)  ;; Ensure `use-package` is installed
 #+end_src
 
 * Evil
 
 #+begin_src emacs-lisp
+;; Initialize Evil mode
+(use-package evil
+  :init
+  (setq evil-want-integration t
+        evil-want-keybinding nil
+        evil-undo-system 'undo-tree) ;; Set before loading Evil
+  :config
+  (evil-mode 1))
 
-      ;; Initialize Evil mode
-      (use-package evil
-        :init
-        (setq evil-want-integration t
-              evil-want-keybinding nil
-  evil-undo-system 'undo-tree
-    ) ;; Set before loading Evil
-        :config
-        (evil-mode 1))
-
-      ;; Configure Evil Collection
-      (use-package evil-collection
-        :after evil
-        :config
-        (evil-collection-init))
+;; Configure Evil Collection
+(use-package evil-collection
+  :after evil
+  :config
+  (evil-collection-init))
 #+end_src
 
 * Basic Configuration
 #+begin_src emacs-lisp
 (use-package emacs
-        :init
-        ;; Set backup directory
-        (setq backup-directory-alist `(("." . "~/.config/emacs/tmp/backups")))
-        ;; Set auto-save directory
-        (setq auto-save-file-name-transforms `((".*" "~/.config/emacs/tmp/auto-save/" t)))
-        ;; Disable lockfiles (#filename#)
-        (setq create-lockfiles nil)
-        :config
-        ;; Ensure directories exist
-        (dolist (dir '("~/.config/emacs/tmp/backups"
-                       "~/.config/emacs/tmp/auto-save"
-                       "~/.config/emacs/tmp/undo-tree"))
-          (unless (file-exists-p dir)
-            (make-directory dir t))))
+  :init
+  ;; Set backup directory
+  (setq backup-directory-alist `(("." . "~/.config/emacs/tmp/backups")))
+  ;; Set auto-save directory
+  (setq auto-save-file-name-transforms `((".*" "~/.config/emacs/tmp/auto-save/" t)))
+  ;; Disable lockfiles (#filename#)
+  (setq create-lockfiles nil)
+  :config
+  ;; Ensure directories exist
+  (dolist (dir '("~/.config/emacs/tmp/backups"
+                 "~/.config/emacs/tmp/auto-save"
+                 "~/.config/emacs/tmp/undo-tree"))
+    (unless (file-exists-p dir)
+      (make-directory dir t))))
 #+end_src
-* User Interface and Appearance 
 
+* User Interface and Appearance
 #+begin_src emacs-lisp
+;; Core UI Configuration
+(menu-bar-mode -1)
+(tool-bar-mode -1)
+(scroll-bar-mode -1)
+(setq inhibit-startup-screen t)
 
-  ;; Core UI Configuration
+(straight-use-package 'all-the-icons)
+(use-package all-the-icons :ensure t)
 
-  (menu-bar-mode -1)
-  (tool-bar-mode -1)
-  (scroll-bar-mode -1)
-  (setq inhibit-startup-screen t)
+(straight-use-package 'rainbow-delimiters)
+(use-package rainbow-delimiters
+  :ensure t
+  :hook (prog-mode . rainbow-delimiters-mode))
 
-
-  (straight-use-package 'all-the-icons)
-  (use-package all-the-icons
-    :ensure t)
-
-
-
-  (straight-use-package 'rainbow-delimiters)
-  (use-package rainbow-delimiters
-    :ensure t
-    :hook (prog-mode . rainbow-delimiters-mode))
-
-
-
-  (straight-use-package 'highlight-indent-guides)
-  (use-package highlight-indent-guides
-    :ensure t
-    :hook (prog-mode . highlight-indent-guides-mode)
-    :config
-    (setq highlight-indent-guides-method 'character))
-
-
+(straight-use-package 'highlight-indent-guides)
+(use-package highlight-indent-guides
+  :ensure t
+  :hook (prog-mode . highlight-indent-guides-mode)
+  :config
+  (setq highlight-indent-guides-method 'character))
 #+end_src
 
 * Themes and Fonts
 #+begin_src emacs-lisp
-  (straight-use-package 'doom-themes)
-  (use-package doom-themes
-    :ensure t
-    :config
-    (load-theme 'doom-gruvbox t))
+(straight-use-package 'doom-themes)
+(use-package doom-themes
+  :ensure t
+  :config
+  (load-theme 'doom-gruvbox t))
 
+(defvar my-org-dir "~/Dropbox/aimacs/aimorg" "Directory for Org files")
 
-  (defun my/create-directory-if-needed (dir)
-    "Create directory DIR if it doesn't exist."
-    (unless (file-exists-p dir)
-      (make-directory dir t)))
+(defun my/create-directory-if-needed (dir)
+  "Create directory DIR if it doesn't exist."
+  (unless (file-exists-p dir)
+    (make-directory dir t)))
 
-  (defun my/download-font (url font-name install-dir)
-    "Download and install a font from URL, save it to INSTALL-DIR."
-    (my/create-directory-if-needed install-dir)  ;; Ensure the directory exists
-    (let ((font-file (expand-file-name (concat font-name ".ttf") install-dir)))
-      (unless (file-exists-p font-file)
-        (url-copy-file url font-file t)
-        (message "Downloaded font: %s" font-file))
-      font-file))
+(defun my/download-font (url font-name install-dir)
+  "Download and install a font from URL, save it to INSTALL-DIR."
+  (my/create-directory-if-needed install-dir)
+  (let ((font-file (expand-file-name (concat font-name ".ttf") install-dir)))
+    (unless (file-exists-p font-file)
+      (url-copy-file url font-file t)
+      (message "Downloaded font: %s" font-file))
+    font-file))
 
-  (defun my/install-font (font-file font-name)
-    "Install a font from FONT-FILE and apply it to Emacs."
-    (when (file-exists-p font-file)
-      (message "Installing font %s..." font-name)
-      (set-fontset-font t 'unicode font-file nil 'prepend)
-      (set-face-attribute 'default nil :font font-name :height 140)
-      (message "Font %s installed and applied." font-name)))
+(defun my/install-font (font-file font-name)
+  "Install a font from FONT-FILE and apply it to Emacs."
+  (when (file-exists-p font-file)
+    (message "Installing font %s..." font-name)
+    (set-fontset-font t 'unicode font-file nil 'prepend)
+    (set-face-attribute 'default nil :font font-name :height 140)
+    (message "Font %s installed and applied." font-name)))
 
-  (defun my/load-source-code-pro-font ()
-    "Download and apply Source Code Pro font."
-    (let* ((font-name "Source Code Pro")
-           (font-url "https://github.com/adobe-fonts/source-code-pro/releases/download/variable-fonts/SourceCodePro-VariableFont_wght.ttf")
-           (font-install-dir (expand-file-name "assets/fonts" user-emacs-directory))  ;; Use the assets folder
-           (font-file (my/download-font font-url font-name font-install-dir)))
-      (my/install-font font-file font-name)))
+(defun my/load-source-code-pro-font ()
+  "Download and apply Source Code Pro font."
+  (let* ((font-name "Source Code Pro")
+         (font-url "https://github.com/adobe-fonts/source-code-pro/releases/download/variable-fonts/SourceCodePro-VariableFont_wght.ttf")
+         (font-install-dir (expand-file-name "assets/fonts" user-emacs-directory))
+         (font-file (my/download-font font-url font-name font-install-dir)))
+    (my/install-font font-file font-name)))
 
-  ;; Call this function to download and install the font
-  (my/load-source-code-pro-font)
+(unless (member "Source Code Pro" (font-family-list))
+  (my/load-source-code-pro-font))
 
-  
-  ;; Set font 
-  (set-face-attribute 'default nil :font "Source Code Pro" :height 130)
+(set-face-attribute 'default nil :font "Source Code Pro" :height 130)
 #+end_src
 
-* Keybindings 
+* Keybindings
 #+begin_src emacs-lisp
-    ;; Core Keybindings Configuration
+;; Core Keybindings Configuration
 
-    ;; General keybindings
-    (use-package general
-      :ensure t
-      :config
-      (general-create-definer my-leader-def
-        :keymaps 'normal  ;; Normal mode for Evil
-        :prefix "SPC"    ;; Leader key is SPC
-        :global-prefix "M-m"))  ;; Global prefix (Alt+m) if you want to use it outside Evil
+(use-package general
+  :ensure t
+  :config
+  (general-create-definer my-leader-def
+    :keymaps 'normal
+    :prefix "SPC"
+    :global-prefix "M-m"))
 
+;; File-related operations under 'f'
+(my-leader-def
+  "f"  '(:ignore t :which-key "file")
+  "f s" 'save-buffer
+  "f S" 'save-some-buffers
+  "f f" 'find-file
+  "f r" 'recentf-open-files
+  "f d" 'dired
+  "f n" 'make-frame-command
+  "f o" 'find-file-other-window)
 
-    ;; File-related operations under 'f'
-    (my-leader-def
-      "f"  '(:ignore t :which-key "file") ;; Group file operations under 'f'
-      "f s" 'save-buffer          ;; Save the current buffer
-      "f S" 'save-some-buffers    ;; Save all buffers
-      "f f" 'find-file            ;; Find a file
-      "f r" 'recentf-open-files   ;; Open recent files
-      "f d" 'dired                ;; Open dired (directory manager)
-      "f n" 'make-frame-command   ;; Create a new frame (optional)
-      "f o" 'find-file-other-window) ;; Open file in another window
+;; Buffer-related operations under 'b'
+(my-leader-def
+  "b"  '(:ignore t :which-key "buffer")
+  "b b" 'switch-to-buffer
+  "b k" 'kill-buffer
+  "b K" 'kill-buffer-and-window
+  "b n" 'next-buffer
+  "b p" 'previous-buffer
+  "b d" 'display-buffer
+  "b r" 'rename-buffer
+  "b l" 'list-buffers
+  "b m" 'switch-to-buffer)
 
-    ;; Buffer-related operations under 'b'
-    (my-leader-def
-      "b"  '(:ignore t :which-key "buffer") ;; Group buffer operations under 'b'
-      "b b" 'switch-to-buffer        ;; Switch to an existing buffer
-      "b k" 'kill-buffer             ;; Kill the current buffer
-      "b K" 'kill-buffer-and-window  ;; Kill the buffer and its window
-      "b n" 'next-buffer             ;; Switch to the next buffer
-      "b p" 'previous-buffer        ;; Switch to the previous buffer
-      "b d" 'display-buffer         ;; Display buffer in another window
-      "b r" 'rename-buffer          ;; Rename the current buffer
-      "b l" 'list-buffers           ;; List all open buffers
-      "b m" 'switch-to-buffer      ;; Interactive buffer switch
+;; Window management (SPC w)
+(my-leader-def
+  "w"  '(:ignore t :which-key "window")
+  "w k" 'windmove-up
+  "w j" 'windmove-down
+  "w h" 'windmove-left
+  "w l" 'windmove-right
+  "w s" 'split-window-below
+  "w v" 'split-window-right
+  "w w" 'other-window
+  "w d" 'delete-window
+  "w =" 'balance-windows
+  "w m" 'delete-other-windows
+  "w x" 'winner-undo
+  "w X" 'winner-redo)
 
-      ;; More buffer-related operations can be added here
-      )
+;; Search commands (SPC s)
+(my-leader-def
+  "s"  '(:ignore t :which-key "search")
+  "s f" 'swiper
+  "s r" 'replace-string
+  "s p" 'projectile-ag
+  "s b" 'consult-buffer
+  "s t" 'consult-theme)
 
-    ;; Window management (SPC w)
-    (my-leader-def
-      "w"  '(:ignore t :which-key "window") ;; Group window management under 'w'
-      "w k" 'windmove-up        ;; Navigate to the window above
-      "w j" 'windmove-down      ;; Navigate to the window below
-      "w h" 'windmove-left      ;; Navigate to the window on the left
-      "w l" 'windmove-right     ;; Navigate to the window on the right
-      "w s" 'split-window-below    ;; Split the window horizontally
-      "w v" 'split-window-right    ;; Split the window vertically
-      "w w" 'other-window          ;; Switch to the other window
-      "w d" 'delete-window         ;; Delete the current window
-      "w =" 'balance-windows       ;; Balance window sizes
-      "w m" 'delete-other-windows  ;; Maximize the current window
-      "w x" 'winner-undo           ;; Undo window configuration changes
-      "w X" 'winner-redo           ;; Redo window configuration changes
-      )
+;; Keybindings for Org mode
+(my-leader-def
+  "o"  '(:ignore t :which-key "Org")
+  "o a" 'org-agenda
+  "o c" 'org-capture
+  "o l" 'org-store-link
+  "o t" 'org-todo
+  "o s" 'org-schedule
+  "o d" 'org-deadline)
 
-    ;; Search commands (SPC s)
-    (my-leader-def
-      "s"  '(:ignore t :which-key "search") ;; Group search commands under 's'
-      "s f" 'swiper                ;; Search with swiper (interactive search)
-      "s r" 'replace-string        ;; Replace a string
-      "s p" 'projectile-ag         ;; Search within the project with ag (requires Projectile)
-      "s b" 'consult-buffer        ;; Search buffers with consult (if installed)
-      "s t" 'consult-theme         ;; Search and switch themes with consult (if installed)
+;; Enable recentf for recent file operations
+(use-package recentf
+  :ensure t
+  :config
+  (recentf-mode 1)
+  (setq recentf-max-menu-items 25)
+  (setq recentf-max-saved-items 100)
+  (add-to-list 'recentf-exclude "\\.git/.*"))
 
-      ;; More custom commands can be added here, depending on your needs
-      )
+(global-set-key (kbd "C-x C-b") 'ibuffer)
+(global-set-key (kbd "M-o") 'other-window)
 
-  
-      ;; Keybindings for Org mode
-      (my-leader-def
-        "o"  '(:ignore t :which-key "Org")  ;; Group Org mode commands under 'o'
-        "o a" 'org-agenda                   ;; Open Org agenda
-        "o c" 'org-capture                  ;; Capture a new entry
-        "o l" 'org-store-link               ;; Store a link for later use
-        "o t" 'org-todo                     ;; Change the todo state
-        "o s" 'org-schedule                 ;; Schedule a task
-        "o d" 'org-deadline                 ;; Set a deadline for a task
-        )
-
-    ;; Enable recentf for recent file operations
-    (use-package recentf
-      :ensure nil
-      :init
-      (recentf-mode 1)
-      (setq recentf-max-saved-items 25))
-
-    ;; Global keybindings
-    (global-set-key (kbd "C-x C-b") 'ibuffer)
-    (global-set-key (kbd "M-o") 'other-window)
-
-  (define-key evil-normal-state-map (kbd "u") 'undo-tree-undo)
-  (define-key evil-normal-state-map (kbd "C-r") 'undo-tree-redo)
-
+(define-key evil-normal-state-map (kbd "u") 'undo-tree-undo)
+(define-key evil-normal-state-map (kbd "C-r") 'undo-tree-redo)
 #+end_src
 
 * Org
-
 #+begin_src emacs-lisp
+  (use-package org
+    :ensure nil
+    :straight nil
+    :config
+    (setq org-use-sub-superscripts nil
+          org-log-done t
+          org-startup-indented t
+          org-hide-leading-stars t
+          org-pretty-entities t
+          org-directory my-org-dir
+          org-mobile-directory org-directory
+          org-src-fontify-natively t
+          org-src-tab-acts-natively t
+          org-src-window-setup 'current-window
+          org-agenda-start-on-weekday 5
+          org-default-notes-file (concat my-org-dir "/0.Inbox.org")
+          org-special-ctrl-a/e t
+          org-agenda-files
+          (remove (concat my-org-dir "/4.Archives.org")
+                  (append (directory-files-recursively my-org-dir "\\.org$")
+                          (directory-files-recursively "~/Workspace/" "\\.org$")))
+          org-todo-keywords '((sequence "TODO(t)" "IN_PROGRESS(i)" "IN_REVIEW(r)" "|" "DONE(d)")
+                              (sequence "NEXT(n)" "WAITING(w@/)" "DELEGATED(D)" "HOLD(h@/)" "|" "CANCELLED(c@/)"))
+          org-global-properties '(("Effort_ALL" . "0:10 0:15 0:20 0:30 1:00 2:00 3:00 4:00 6:00 8:00"))
+          org-columns-default-format "%50ITEM(Task) %TODO %TAGS %SCHEDULED %DEADLINE %Effort(Estimated Effort){:} %CLOCKSUM"
+          org-archive-location (concat my-org-dir "/4.Archives.org::* From %s")
+          org-refile-targets '((org-agenda-files :maxlevel . 3))
+          org-capture-templates '(("i" "Inbox" entry (file+headline my-org-dir "/0.Inbox.org" "Inbox")
+                                   "* %?\n"))
+          org-agenda-window-setup 'current-window))
 
-    ;; Configure Org using use-package
-    (use-package org
-      :ensure nil  ;; Don't try to install it again, since it's handled by straight
-      :straight t  ;; Ensure Org is managed by straight.el
-      :config
-      (require 'org-id)
-      (setq org-use-sub-superscripts nil                     ;; Disable subscripts globally
-            org-log-done t                                   ;; Log completion of tasks
-            org-startup-indented t                           ;; Start Org with indented content
-            org-hide-leading-stars t                         ;; Hide leading stars in headings
-            org-pretty-entities t                            ;; Display pretty entities (e.g., Greek letters)
-            org-directory "~/Dropbox/aimacs/aimorg"          ;; Org directory
-            org-mobile-directory org-directory              ;; Same as org-directory
-            org-src-fontify-natively t                       ;; Syntax highlighting in source blocks
-            org-src-tab-acts-natively t                      ;; TAB acts natively in source blocks
-            org-src-window-setup 'current-window             ;; Use current window for editing source blocks
-            org-agenda-start-on-weekday 5                    ;; Start agenda on Friday
-            org-default-notes-file (concat org-directory "/0.Inbox.org") ;; Default notes file
-            org-special-ctrl-a/e t                           ;; Enable special C-a and C-e behavior
-            org-agenda-files
-            (remove "~/Dropbox/aimacs/aimorg/4.Archives.org"
-                    (append (directory-files-recursively "~/Dropbox/aimacs/aimorg/" "\\.org$")
-                            (directory-files-recursively "~/Workspace/" "\\.org$")))
-            org-todo-keywords '((sequence "TODO(t)" "IN_PROGRESS(i)" "IN_REVIEW(r)" "|" "DONE(d)")
-                                (sequence "NEXT(n)" "WAITING(w@/)" "DELEGATED(D)" "HOLD(h@/)" "|" "CANCELLED(c@/)"))
-            org-global-properties '(("Effort_ALL" . "0:10 0:15 0:20 0:30 1:00 2:00 3:00 4:00 6:00 8:00"))
-            org-columns-default-format "%50ITEM(Task) %TODO %TAGS %SCHEDULED %DEADLINE %Effort(Estimated Effort){:} %CLOCKSUM"
-            org-archive-location "~/Dropbox/aimacs/aimorg/4.Archives.org::* From %s"
-            org-refile-targets '((org-agenda-files :maxlevel . 3))
-            org-capture-templates '(("i" "Inbox" entry (file+headline "~/Dropbox/aimacs/aimorg/0.Inbox.org" "Inbox")
-                                     "* %?\n"))
-            org-agenda-window-setup 'current-window))
 
   (use-package org-modern
     :ensure t
     :hook (org-mode . org-modern-mode))
 
-
-    (use-package toc-org
-      :commands toc-org-enable
-      :init
-      (add-hook 'org-mode-hook 'toc-org-enable)
-      )
+  (use-package toc-org
+    :ensure t
+    :commands toc-org-enable
+    :init
+    (add-hook 'org-mode-hook 'toc-org-enable))
 #+end_src
 
 * Projectile
 #+begin_src emacs-lisp
-      ;; Ensure Projectile is installed
-      (straight-use-package 'projectile)
+;; Ensure Projectile is installed
+(straight-use-package 'projectile)
 
-      ;; Projectile Configuration
-      (use-package projectile
-        :ensure t
-        :init
-        ;; Enable caching for faster project navigation
-        (setq projectile-enable-caching t)
+;; Projectile Configuration
+(use-package projectile
+  :ensure t
+  :init
+  ;; Enable caching for faster project navigation
+  (setq projectile-enable-caching t)
 
-        ;; Set the default search path for projects
-        (setq projectile-project-search-path '("~/projects/" "~/Workspace/"))
+  ;; Set the default search path for projects
+  (setq projectile-project-search-path '("~/projects/" "~/Workspace/"))
 
-        ;; Automatically switch to project directory view
-        (setq projectile-switch-project-action #'projectile-dired)
-        :config
-        ;; Enable Projectile globally
-        (projectile-mode +1)
+  ;; Automatically switch to project directory view
+  (setq projectile-switch-project-action #'projectile-dired)
+  :config
+  ;; Enable Projectile globally
+  (projectile-mode +1))
 
-        ;; Keybindings
-        (define-key projectile-mode-map (kbd "C-c p") 'projectile-command-map)
+;; Keybindings
+(define-key projectile-mode-map (kbd "C-c p") 'projectile-command-map)
 
-        (my-leader-def
-          "p" 'projectile-command-map  ;; Use SPC p for Projectile commands
-          "/" 'projectile-ripgrep)     ;; Bind / to projectile-ripgrep under Projectile commands
+(my-leader-def
+  "p" 'projectile-command-map  ;; Use SPC p for Projectile commands
+  "/" 'projectile-ripgrep)     ;; Bind / to projectile-ripgrep under Projectile commands
 
-
-
-        ;; Optional: Integrate with Ivy for better completion
-        (use-package counsel-projectile
-          :ensure t
-          :config
-          (counsel-projectile-mode 1)))
+;; Optional: Integrate with Ivy for better completion
+(use-package counsel-projectile
+  :ensure t
+  :config
+  (counsel-projectile-mode 1))
 #+end_src
 
 * LSP and Programming
