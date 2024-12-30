@@ -37,20 +37,27 @@
 * Evil
 
 #+begin_src emacs-lisp
-;; Initialize Evil mode
-(use-package evil
-  :init
-  (setq evil-want-integration t
-        evil-want-keybinding nil
-        evil-undo-system 'undo-tree) ;; Set before loading Evil
-  :config
-  (evil-mode 1))
+    ;; Initialize Evil mode
+    (use-package evil
+      :init
+      (setq evil-want-integration t
+            evil-want-keybinding nil
+            evil-undo-system 'undo-tree) ;; Set before loading Evil
+      :config
+      (evil-mode 1))
 
-;; Configure Evil Collection
-(use-package evil-collection
-  :after evil
-  :config
-  (evil-collection-init))
+    ;; Configure Evil Collection
+    (use-package evil-collection
+      :after evil
+      :config
+      (evil-collection-init))
+
+  (use-package evil-commentary
+    :straight t
+    :after evil
+    :config
+    (evil-commentary-mode))
+
 #+end_src
 
 * Basic Configuration
