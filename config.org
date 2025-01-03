@@ -9,6 +9,7 @@
 - [[#user-interface-and-appearance][User Interface and Appearance]]
 - [[#themes-and-fonts][Themes and Fonts]]
 - [[#keybindings][Keybindings]]
+- [[#shell][Shell]]
 - [[#org][Org]]
 - [[#projectile][Projectile]]
 - [[#lsp-and-programming][LSP and Programming]]
@@ -151,92 +152,113 @@
 
 * Keybindings
 #+begin_src emacs-lisp
-  ;; Core Keybindings Configuration
+      ;; Core Keybindings Configuration
 
-  (use-package general
-    :ensure t
-    :config
-    (general-create-definer my-leader-def
-      :keymaps 'normal
-      :prefix "SPC"
-      :global-prefix "M-m"))
+      (use-package general
+        :ensure t
+        :config
+        (general-create-definer my-leader-def
+          :keymaps 'normal
+          :prefix "SPC"
+          :global-prefix "M-m"))
 
-  ;; File-related operations under 'f'
-  (my-leader-def
-    "f"  '(:ignore t :which-key "file")
-    "f s" 'save-buffer
-    "f S" 'save-some-buffers
-    "f f" 'find-file
-    "f r" 'recentf-open-files
-    "f d" 'dired
-    "f n" 'make-frame-command
-    "f o" 'find-file-other-window)
+      (my-leader-def
+  "t v" '(toggle-vterm :which-key "Toggle vterm")
+  )
 
-  ;; Buffer-related operations under 'b'
-  (my-leader-def
-    "b"  '(:ignore t :which-key "buffer")
-    "b b" 'switch-to-buffer
-    "b k" 'kill-buffer
-    "b K" 'kill-buffer-and-window
-    "b n" 'next-buffer
-    "b p" 'previous-buffer
-    "b d" 'display-buffer
-    "b r" 'rename-buffer
-    "b l" 'list-buffers
-    "b m" 'switch-to-buffer)
+      ;; File-related operations under 'f'
+      (my-leader-def
+        "f"  '(:ignore t :which-key "file")
+        "f s" 'save-buffer
+        "f S" 'save-some-buffers
+        "f f" 'find-file
+        "f r" 'recentf-open-files
+        "f d" 'dired
+        "f n" 'make-frame-command
+        "f o" 'find-file-other-window)
 
-  ;; Window management (SPC w)
-  (my-leader-def
-    "w"  '(:ignore t :which-key "window")
-    "w k" 'windmove-up
-    "w j" 'windmove-down
-    "w h" 'windmove-left
-    "w l" 'windmove-right
-    "w s" 'split-window-below
-    "w v" 'split-window-right
-    "w w" 'other-window
-    "w d" 'delete-window
-    "w =" 'balance-windows
-    "w m" 'delete-other-windows
-    "w x" 'winner-undo
-    "w X" 'winner-redo)
+      ;; Buffer-related operations under 'b'
+      (my-leader-def
+        "b"  '(:ignore t :which-key "buffer")
+        "b b" 'switch-to-buffer
+        "b k" 'kill-buffer
+        "b K" 'kill-buffer-and-window
+        "b n" 'next-buffer
+        "b p" 'previous-buffer
+        "b d" 'display-buffer
+        "b r" 'rename-buffer
+        "b l" 'list-buffers
+        "b m" 'switch-to-buffer)
 
-  ;; Search commands (SPC s)
-  (my-leader-def
-    "s"  '(:ignore t :which-key "search")
-    "s f" 'swiper
-    "s r" 'replace-string
-    "s p" 'projectile-ag
-    "s b" 'consult-buffer
-    "s t" 'consult-theme)
+      ;; Window management (SPC w)
+      (my-leader-def
+        "w"  '(:ignore t :which-key "window")
+        "w k" 'windmove-up
+        "w j" 'windmove-down
+        "w h" 'windmove-left
+        "w l" 'windmove-right
+        "w s" 'split-window-below
+        "w v" 'split-window-right
+        "w w" 'other-window
+        "w d" 'delete-window
+        "w =" 'balance-windows
+        "w m" 'delete-other-windows
+        "w x" 'winner-undo
+        "w X" 'winner-redo)
 
-  ;; Keybindings for Org mode
-  (my-leader-def
-    "o"  '(:ignore t :which-key "Org")
-    "o a" 'org-agenda
-    "o c" 'org-capture
-    "o l" 'org-store-link
-    "o t" 'org-todo
-    "o s" 'org-schedule
-    "o d" 'org-deadline)
+      ;; Search commands (SPC s)
+      (my-leader-def
+        "s"  '(:ignore t :which-key "search")
+        "s f" 'swiper
+        "s r" 'replace-string
+        "s p" 'projectile-ag
+        "s b" 'consult-buffer
+        "s t" 'consult-theme)
 
-  ;; Enable recentf for recent file operations
-  (use-package recentf
-    :straight t
-    :init
-    (recentf-mode 1)
-    :config
-    (setq recentf-max-saved-items 100
-          recentf-auto-cleanup 'never
-          recentf-exclude '("/tmp/" "/ssh:" "/\\.git/")))
+      ;; Keybindings for Org mode
+      (my-leader-def
+        "o"  '(:ignore t :which-key "Org")
+        "o a" 'org-agenda
+        "o c" 'org-capture
+        "o l" 'org-store-link
+        "o t" 'org-todo
+        "o s" 'org-schedule
+        "o d" 'org-deadline)
 
-  (global-set-key (kbd "C-x C-b") 'ibuffer)
-  (global-set-key (kbd "M-o") 'other-window)
+      ;; Enable recentf for recent file operations
+      (use-package recentf
+        :straight t
+        :init
+        (recentf-mode 1)
+        :config
+        (setq recentf-max-saved-items 100
+              recentf-auto-cleanup 'never
+              recentf-exclude '("/tmp/" "/ssh:" "/\\.git/")))
 
-  (define-key evil-normal-state-map (kbd "u") 'undo-tree-undo)
-  (define-key evil-normal-state-map (kbd "C-r") 'undo-tree-redo)
+      (global-set-key (kbd "C-x C-b") 'ibuffer)
+      (global-set-key (kbd "M-o") 'other-window)
+
+      (define-key evil-normal-state-map (kbd "u") 'undo-tree-undo)
+      (define-key evil-normal-state-map (kbd "C-r") 'undo-tree-redo)
 #+end_src
 
+* Shell
+#+begin_src emacs-lisp
+(use-package vterm
+  :ensure t
+  :init
+  ;; Function to toggle vterm in the minibuffer
+  (defun toggle-vterm ()
+    "Toggle vterm in the minibuffer."
+    (interactive)
+    (let ((vterm-buffer-name "*vterm*"))
+      (if (get-buffer vterm-buffer-name)
+          (if (get-buffer-window vterm-buffer-name)
+              (delete-window (get-buffer-window vterm-buffer-name)) ;; Close vterm
+            (pop-to-buffer vterm-buffer-name))                     ;; Show vterm
+        (vterm)))) ;; Open vterm if not exists
+)
+#+end_src
 * Org
 #+begin_src emacs-lisp
   (use-package org
