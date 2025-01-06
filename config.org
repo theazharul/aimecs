@@ -434,57 +434,56 @@
 * LSP and Programming
 ** Treesit
 #+begin_src emacs-lisp
-      ;; Ensure Tree-sitter integration
-      (use-package treesit
-        :straight (:type built-in) ;; treesit is built into Emacs 29+
-        :init
-        ;; Use Tree-sitter for supported major modes
-        (setq major-mode-remap-alist
-              '((python-mode . python-ts-mode)
-                (js-mode . js-ts-mode)
-                (js-mode . typescript-ts-mode)
-                (css-mode . css-ts-mode)
-                (html-mode . html-ts-mode)
-                (json-mode . json-ts-mode)
-                (bash-mode . bash-ts-mode)
-                (elixir-mode . elixir-ts-mode)
-                (yaml-mode . yaml-ts-mode)))
-        :config
-        ;; Function to ensure Tree-sitter parser is installed
-        (defun my/ensure-treesit-parser (lang)
-          "Ensure Tree-sitter parser for LANG is installed."
-          (unless (treesit-language-available-p lang)
-            (treesit-install-language-grammar lang)))
-        ;; Automatically install parsers for listed languages
-        (dolist (lang '(python javascript css html json bash elixir yaml))
-          (my/ensure-treesit-parser lang))
-  (add-hook 'js-ts-mode-hook #'treesit-inspect-mode) ;; Optional: debugging treesit parsing
-    (add-hook 'typescript-ts-mode-hook #'treesit-inspect-mode)
-    )
-(add-to-list 'treesit-extra-load-path "~/.config/emacs/tree-sitter/")
+        ;; Ensure Tree-sitter integration
+        (use-package treesit
+          :straight (:type built-in) ;; treesit is built into Emacs 29+
+          :init
+          ;; Use Tree-sitter for supported major modes
+          (setq major-mode-remap-alist
+                '((python-mode . python-ts-mode)
+                  (js-mode . js-ts-mode)
+                  (js-mode . typescript-ts-mode)
+                  (css-mode . css-ts-mode)
+                  (html-mode . html-ts-mode)
+                  (json-mode . json-ts-mode)
+                  (bash-mode . bash-ts-mode)
+                  (elixir-mode . elixir-ts-mode)
+                  (yaml-mode . yaml-ts-mode)))
+          :config
+          ;; Function to ensure Tree-sitter parser is installed
+          (defun my/ensure-treesit-parser (lang)
+            "Ensure Tree-sitter parser for LANG is installed."
+            (unless (treesit-language-available-p lang)
+              (treesit-install-language-grammar lang)))
+          ;; Automatically install parsers for listed languages
+          (dolist (lang '(python javascript css html json bash elixir yaml))
+            (my/ensure-treesit-parser lang))
+    (add-hook 'js-ts-mode-hook #'treesit-inspect-mode) ;; Optional: debugging treesit parsing
+      (add-hook 'typescript-ts-mode-hook #'treesit-inspect-mode)
+      )
 
-      ;; Enhance syntax highlighting with `font-lock`
-      (use-package font-lock
-        :straight (:type built-in)
-        :config
-        (setq treesit-font-lock-level 4)) ;; Maximum level for detailed syntax highlighting
+        ;; Enhance syntax highlighting with `font-lock`
+        (use-package font-lock
+          :straight (:type built-in)
+          :config
+          (setq treesit-font-lock-level 4)) ;; Maximum level for detailed syntax highlighting
 
-      ;; Ensure `tree-sitter` and `tree-sitter-langs` are installed
-      (use-package tree-sitter
-        :straight t
-        :hook ((prog-mode . global-tree-sitter-mode)
-               (tree-sitter-after-on . tree-sitter-hl-mode))
-        :config
-        ;; Map major modes to Tree-sitter languages
-        (setq tree-sitter-major-mode-language-alist
-              '((js-mode . javascript)
-                (jsx-mode . javascript)
-                (php-mode . php)
-                (elixir-mode . elixir)
-                (yaml-mode . yaml))))
+        ;; Ensure `tree-sitter` and `tree-sitter-langs` are installed
+        (use-package tree-sitter
+          :straight t
+          :hook ((prog-mode . global-tree-sitter-mode)
+                 (tree-sitter-after-on . tree-sitter-hl-mode))
+          :config
+          ;; Map major modes to Tree-sitter languages
+          (setq tree-sitter-major-mode-language-alist
+                '((js-mode . javascript)
+                  (jsx-mode . javascript)
+                  (php-mode . php)
+                  (elixir-mode . elixir)
+                  (yaml-mode . yaml))))
 
-      (use-package tree-sitter-langs
-        :straight t)
+        (use-package tree-sitter-langs
+          :straight t)
 
 #+end_src
 
