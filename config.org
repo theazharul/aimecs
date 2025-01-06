@@ -434,87 +434,95 @@
 * LSP and Programming
 ** Treesit
 #+begin_src emacs-lisp
-;; Ensure Tree-sitter integration
-(use-package treesit
-  :straight (:type built-in) ;; treesit is built into Emacs 29+
-  :init
-  ;; Use Tree-sitter for supported major modes
-  (setq major-mode-remap-alist
-        '((python-mode . python-ts-mode)
-          (js-mode . js-ts-mode)
-          (css-mode . css-ts-mode)
-          (html-mode . html-ts-mode)
-          (json-mode . json-ts-mode)
-          (bash-mode . bash-ts-mode)
-          (elixir-mode . elixir-ts-mode)
-          (yaml-mode . yaml-ts-mode)))
-  :config
-  ;; Function to ensure Tree-sitter parser is installed
-  (defun my/ensure-treesit-parser (lang)
-    "Ensure Tree-sitter parser for LANG is installed."
-    (unless (treesit-language-available-p lang)
-      (treesit-install-language-grammar lang)))
-  ;; Automatically install parsers for listed languages
-  (dolist (lang '(python javascript css html json bash elixir yaml))
-    (my/ensure-treesit-parser lang)))
+      ;; Ensure Tree-sitter integration
+      (use-package treesit
+        :straight (:type built-in) ;; treesit is built into Emacs 29+
+        :init
+        ;; Use Tree-sitter for supported major modes
+        (setq major-mode-remap-alist
+              '((python-mode . python-ts-mode)
+                (js-mode . js-ts-mode)
+                (js-mode . typescript-ts-mode)
+                (css-mode . css-ts-mode)
+                (html-mode . html-ts-mode)
+                (json-mode . json-ts-mode)
+                (bash-mode . bash-ts-mode)
+                (elixir-mode . elixir-ts-mode)
+                (yaml-mode . yaml-ts-mode)))
+        :config
+        ;; Function to ensure Tree-sitter parser is installed
+        (defun my/ensure-treesit-parser (lang)
+          "Ensure Tree-sitter parser for LANG is installed."
+          (unless (treesit-language-available-p lang)
+            (treesit-install-language-grammar lang)))
+        ;; Automatically install parsers for listed languages
+        (dolist (lang '(python javascript css html json bash elixir yaml))
+          (my/ensure-treesit-parser lang))
+  (add-hook 'js-ts-mode-hook #'treesit-inspect-mode) ;; Optional: debugging treesit parsing
+    (add-hook 'typescript-ts-mode-hook #'treesit-inspect-mode)
+    )
 
-;; Enhance syntax highlighting with `font-lock`
-(use-package font-lock
-  :straight (:type built-in)
-  :config
-  (setq treesit-font-lock-level 4)) ;; Maximum level for detailed syntax highlighting
+      ;; Enhance syntax highlighting with `font-lock`
+      (use-package font-lock
+        :straight (:type built-in)
+        :config
+        (setq treesit-font-lock-level 4)) ;; Maximum level for detailed syntax highlighting
 
-;; Ensure `tree-sitter` and `tree-sitter-langs` are installed
-(use-package tree-sitter
-  :straight t
-  :hook ((prog-mode . global-tree-sitter-mode)
-         (tree-sitter-after-on . tree-sitter-hl-mode))
-  :config
-  ;; Map major modes to Tree-sitter languages
-  (setq tree-sitter-major-mode-language-alist
-        '((js-mode . javascript)
-          (jsx-mode . javascript)
-          (php-mode . php)
-          (elixir-mode . elixir)
-          (yaml-mode . yaml))))
+      ;; Ensure `tree-sitter` and `tree-sitter-langs` are installed
+      (use-package tree-sitter
+        :straight t
+        :hook ((prog-mode . global-tree-sitter-mode)
+               (tree-sitter-after-on . tree-sitter-hl-mode))
+        :config
+        ;; Map major modes to Tree-sitter languages
+        (setq tree-sitter-major-mode-language-alist
+              '((js-mode . javascript)
+                (jsx-mode . javascript)
+                (php-mode . php)
+                (elixir-mode . elixir)
+                (yaml-mode . yaml))))
 
-(use-package tree-sitter-langs
-  :straight t)
+      (use-package tree-sitter-langs
+        :straight t)
 
 #+end_src
 
 ** Eglot
 #+begin_src emacs-lisp
-          (use-package eglot
-      :init
-      ;; Reduce events buffer size and exclude eldoc if desired
-      (setq eglot-events-buffer-size 0
-            eglot-stay-out-of '(eldoc))
-      ;; Configure eglot-server-programs for various languages
-      (setq eglot-server-programs
-            `((python-ts-mode   . ("pyright-langserver" "--stdio"))
-  (elixir-ts-mode . ("~/.config/emacs/elixir-ls/release/language_server.sh"))
-              (css-ts-mode      . ("vscode-css-languageserver" "--stdio"))
-              (html-ts-mode     . ("vscode-html-languageserver" "--stdio"))
-              (json-ts-mode     . ("vscode-json-languageserver" "--stdio"))
-              (go-ts-mode       . ("gopls"))
-              (yaml-ts-mode     . ("yaml-language-server" "--stdio"))
-              (php-mode         . ("intelephense" "--stdio"))
-              (dart-mode        . ("dart" "language-server"))
-              ))
+    ;; Ensure Tree-sitter is available
+    (when (and (functionp 'treesit-available-p) (treesit-available-p))
+      (message "Tree-sitter is available"))
 
-      ;; Ensure tree-sitter grammars are installed for languages that support it
-      :hook
-      ((python-ts-mode js-ts-mode typescript-ts-mode css-ts-mode html-ts-mode json-ts-mode
-                        elixir-ts-mode go-ts-mode yaml-ts-mode php-mode dart-mode)
-       . eglot-ensure)
+              (use-package eglot
+          :init
+          ;; Reduce events buffer size and exclude eldoc if desired
+          (setq eglot-events-buffer-size 0
+                eglot-stay-out-of '(eldoc))
+          ;; Configure eglot-server-programs for various languages
+          (setq eglot-server-programs
+                `((python-ts-mode   . ("pyright-langserver" "--stdio"))
+      (elixir-ts-mode . ("~/.config/emacs/elixir-ls/release/language_server.sh"))
+                  (css-ts-mode      . ("vscode-css-languageserver" "--stdio"))
+                  (html-ts-mode     . ("vscode-html-languageserver" "--stdio"))
+  ((js-ts-mode tsx-ts-mode typescript-ts-mode) . ("typescript-language-server" "--stdio"))
+                  (json-ts-mode     . ("vscode-json-languageserver" "--stdio"))
+                  (go-ts-mode       . ("gopls"))
+                  (yaml-ts-mode     . ("yaml-language-server" "--stdio"))
+                  (php-mode         . ("intelephense" "--stdio"))
+                  (dart-mode        . ("dart" "language-server"))
+                  ))
 
-      :config
+          ;; Ensure tree-sitter grammars are installed for languages that support it
+          :hook
+          ((python-ts-mode js-ts-mode tsx-ts-mode typescript-ts-mode css-ts-mode html-ts-mode json-ts-mode
+                            elixir-ts-mode go-ts-mode yaml-ts-mode php-mode dart-mode)
+           . eglot-ensure)
 
-      ;; Automatically format on save for eglot-managed buffers
-      (add-hook 'eglot-managed-mode-hook
-                (lambda ()
-                  (add-hook 'before-save-hook #'eglot-format-buffer -10 t))))
+          :config
+          ;; Automatically format on save for eglot-managed buffers
+          (add-hook 'eglot-managed-mode-hook
+                    (lambda ()
+                      (add-hook 'before-save-hook #'eglot-format-buffer -10 t))))
 
 
 #+end_src
@@ -685,32 +693,43 @@
 
 ** JS
 #+begin_src emacs-lisp
-;; JavaScript and TypeScript Configuration with eglot
-(use-package js2-mode
-  :ensure t
-  :hook
-  ;; Enable eglot for JavaScript and TypeScript files
-  ((js2-mode . eglot-ensure)
-   (js2-mode . subword-mode))  ;; Enable subword mode for camelCase movement
-  :mode ("\\.js\\'" "\\.jsx\\'" "\\.ts\\'" "\\.tsx\\'")  ;; File extensions for JavaScript and React
+    ;; Use the new modes for JavaScript, JSX, and TypeScript
+    (use-package typescript-ts-mode
+      :mode "\\.ts\\'"
+      :hook (typescript-ts-mode . eglot-ensure))
 
-  :config
-  (setq js2-basic-offset 2)  ;; JavaScript indentation (React style)
-  ;; Optional: Disable unnecessary warnings for JavaScript files
-  (add-hook 'js2-mode-hook (lambda () (setq js2-mode-show-strict-warnings nil))))
+  (add-to-list 'auto-mode-alist '("\\.js\\'" . js-ts-mode))  ;; JavaScript
+  (add-to-list 'auto-mode-alist '("\\.jsx\\'" . tsx-ts-mode)) ;; JSX
+  (add-to-list 'auto-mode-alist '("\\.ts\\'" . typescript-ts-mode)) ;; TypeScript
+  (add-to-list 'auto-mode-alist '("\\.tsx\\'" . tsx-ts-mode)) ;; TSX
 
-;; React/JSX specific configuration with eglot
-(use-package rjsx-mode
-  :ensure t
-  :mode ("\\.jsx\\'" "\\.tsx\\'")
-  :hook
-  ;; Enable eglot in rjsx-mode
-  ((rjsx-mode . eglot-ensure)
-   (rjsx-mode . subword-mode))  ;; Enable subword mode for camelCase movement
-  :config
-  (setq js2-basic-offset 2)  ;; ReactJS style indentation
-  ;; Disable unnecessary warnings in rjsx-mode
-  (add-hook 'rjsx-mode-hook (lambda () (setq js2-mode-show-strict-warnings nil))))
+
+      ;; ;; JavaScript and TypeScript Configuration with eglot
+      ;; (use-package js2-mode
+      ;;   :ensure t
+      ;;   :hook
+      ;;   ;; Enable eglot for JavaScript and TypeScript files
+      ;;   ((js2-mode . eglot-ensure)
+      ;;    (js2-mode . subword-mode))  ;; Enable subword mode for camelCase movement
+      ;;   :mode ("\\.js\\'" "\\.jsx\\'" "\\.ts\\'" "\\.tsx\\'")  ;; File extensions for JavaScript and React
+
+      ;;   :config
+      ;;   (setq js2-basic-offset 2)  ;; JavaScript indentation (React style)
+      ;;   ;; Optional: Disable unnecessary warnings for JavaScript files
+      ;;   (add-hook 'js2-mode-hook (lambda () (setq js2-mode-show-strict-warnings nil))))
+
+      ;; ;; React/JSX specific configuration with eglot
+      ;; (use-package rjsx-mode
+      ;;   :ensure t
+      ;;   :mode ("\\.jsx\\'" "\\.tsx\\'")
+      ;;   :hook
+      ;;   ;; Enable eglot in rjsx-mode
+      ;;   ((rjsx-mode . eglot-ensure)
+      ;;    (rjsx-mode . subword-mode))  ;; Enable subword mode for camelCase movement
+      ;;   :config
+      ;;   (setq js2-basic-offset 2)  ;; ReactJS style indentation
+      ;;   ;; Disable unnecessary warnings in rjsx-mode
+      ;;   (add-hook 'rjsx-mode-hook (lambda () (setq js2-mode-show-strict-warnings nil))))
 #+end_src
 
 ** PHP
