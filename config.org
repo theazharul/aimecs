@@ -461,6 +461,7 @@
   (add-hook 'js-ts-mode-hook #'treesit-inspect-mode) ;; Optional: debugging treesit parsing
     (add-hook 'typescript-ts-mode-hook #'treesit-inspect-mode)
     )
+(add-to-list 'treesit-extra-load-path "~/.config/emacs/tree-sitter/")
 
       ;; Enhance syntax highlighting with `font-lock`
       (use-package font-lock
