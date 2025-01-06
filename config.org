@@ -91,42 +91,43 @@
 
 * Basic Configuration
 #+begin_src emacs-lisp
-        (use-package emacs
-          :init
-          ;; Set backup directory
-          (setq backup-directory-alist `(("." . "~/.config/emacs/tmp/backups")))
-          ;; Set auto-save directory
-          (setq auto-save-file-name-transforms `((".*" "~/.config/emacs/tmp/auto-save/" t)))
-          ;; Disable lockfiles (#filename#)
-          (setq create-lockfiles nil)
-          :config
-          ;; Ensure directories exist
-          (dolist (dir '("~/.config/emacs/tmp/backups"
-                         "~/.config/emacs/tmp/auto-save"
-                         "~/.config/emacs/tmp/undo-tree"))
-            (unless (file-exists-p dir)
-              (make-directory dir t)))
+          (use-package emacs
+            :init
+            ;; Set backup directory
+            (setq backup-directory-alist `(("." . "~/.config/emacs/tmp/backups")))
+            ;; Set auto-save directory
+            (setq auto-save-file-name-transforms `((".*" "~/.config/emacs/tmp/auto-save/" t)))
+            ;; Disable lockfiles (#filename#)
+            (setq create-lockfiles nil)
+            :config
+            ;; Ensure directories exist
+            (dolist (dir '("~/.config/emacs/tmp/backups"
+                           "~/.config/emacs/tmp/auto-save"
+                           "~/.config/emacs/tmp/undo-tree"))
+              (unless (file-exists-p dir)
+                (make-directory dir t)))
 
-            (setq display-line-numbers-type 't) ;; or 'relative
-            (global-display-line-numbers-mode 1)
-            (global-visual-line-mode 1)
+              (setq display-line-numbers-type 't) ;; or 'relative
+              (global-display-line-numbers-mode 1)
+              (global-visual-line-mode 1)
+  (global-hl-line-mode 1)
 
-            ;; Disable in specific modes
-            (dolist (mode '(org-mode-hook
-                            eshell-mode-hook
-                            term-mode-hook))
-              (add-hook mode (lambda () (display-line-numbers-mode 0))))
-    :custom
-  ;; Should use:
-   ;; (mapc #'treesit-install-language-grammar (mapcar #'car treesit-language-source-alist))
-   ;; at least once per installation or while changing this list
-   (treesit-language-source-alist
-    '((heex "https://github.com/phoenixframework/tree-sitter-heex")
-      (elixir "https://github.com/elixir-lang/tree-sitter-elixir")))
+              ;; Disable in specific modes
+              (dolist (mode '(org-mode-hook
+                              eshell-mode-hook
+                              term-mode-hook))
+                (add-hook mode (lambda () (display-line-numbers-mode 0))))
+      :custom
+    ;; Should use:
+     ;; (mapc #'treesit-install-language-grammar (mapcar #'car treesit-language-source-alist))
+     ;; at least once per installation or while changing this list
+     (treesit-language-source-alist
+      '((heex "https://github.com/phoenixframework/tree-sitter-heex")
+        (elixir "https://github.com/elixir-lang/tree-sitter-elixir")))
 
-   (major-mode-remap-alist
-    '((elixir-mode . elixir-ts-mode)))
-    )
+     (major-mode-remap-alist
+      '((elixir-mode . elixir-ts-mode)))
+      )
 
 #+end_src
 
