@@ -9,11 +9,11 @@
 - [[#user-interface-and-appearance][User Interface and Appearance]]
 - [[#themes-and-fonts][Themes and Fonts]]
 - [[#keybindings][Keybindings]]
-- [[#treesit][Treesit]]
 - [[#shell][Shell]]
 - [[#org][Org]]
 - [[#projectile][Projectile]]
 - [[#lsp-and-programming][LSP and Programming]]
+  - [[#treesit][Treesit]]
   - [[#eglot][Eglot]]
   - [[#company][Company]]
   - [[#flycheck][Flycheck]]
@@ -71,6 +71,14 @@
     :config
     (evil-commentary-mode))
 
+    (use-package evil-mc
+      :ensure t
+  :straight t
+    :after evil
+      :config
+      ;; Enable evil-mc globally
+      (global-evil-mc-mode 1)
+      )
 #+end_src
 
 * Basic Configuration
@@ -299,53 +307,6 @@
               (define-key evil-normal-state-map (kbd "C-r") 'undo-tree-redo)
 #+end_src
 
-* Treesit
-#+begin_src emacs-lisp
-        ;; Ensure tree-sitter integration
-        (use-package treesit
-          :straight (:type built-in) ;; treesit is built into Emacs 29+
-          :init
-          ;; Use treesit for supported major modes
-          (setq major-mode-remap-alist
-                '((python-mode          . python-ts-mode)
-                  (js-mode              . js-ts-mode)
-                  ;; (typescript-mode      . typescript-ts-mode)
-                  (css-mode             . css-ts-mode)
-                  (html-mode            . html-ts-mode)
-                  (json-mode            . json-ts-mode)
-                  ;; (c-mode               . c-ts-mode)
-                  ;; (c++-mode             . c++-ts-mode)
-                  ;; (java-mode            . java-ts-mode)
-                  (bash-mode            . bash-ts-mode)
-                  ;; (ruby-mode            . ruby-ts-mode)
-                  (elixir-mode          . elixir-ts-mode)
-                  ;; (go-mode              . go-ts-mode)
-                  (yaml-mode            . yaml-ts-mode)))
-
-          ;; Automatically install treesit parsers for supported languages
-          :config
-          (defun my/ensure-treesit-parser (lang)
-            "Ensure treesit parser for LANG is installed."
-            (unless (treesit-language-available-p lang)
-              (treesit-install-language-grammar lang)))
-
-          (dolist (lang '(python javascript  css html json  bash  elixir  yaml))
-            (my/ensure-treesit-parser lang)))
-
-      ;; Optional: Enhance syntax highlighting with `font-lock-extra`
-      (use-package font-lock
-        :straight (:type built-in)
-        :config
-        (setq treesit-font-lock-level 4)) ;; Max level for better syntax highlighting
-
-    (straight-use-package 'tree-sitter)
-    (straight-use-package 'tree-sitter-langs)
-  (require 'tree-sitter)
-  (require 'tree-sitter-langs)
-
-
-#+end_src
-
 * Shell
 #+begin_src emacs-lisp
 (use-package vterm
@@ -461,8 +422,58 @@
 
 #+end_src
 
-
 * LSP and Programming
+** Treesit
+#+begin_src emacs-lisp
+;; Ensure Tree-sitter integration
+(use-package treesit
+  :straight (:type built-in) ;; treesit is built into Emacs 29+
+  :init
+  ;; Use Tree-sitter for supported major modes
+  (setq major-mode-remap-alist
+        '((python-mode . python-ts-mode)
+          (js-mode . js-ts-mode)
+          (css-mode . css-ts-mode)
+          (html-mode . html-ts-mode)
+          (json-mode . json-ts-mode)
+          (bash-mode . bash-ts-mode)
+          (elixir-mode . elixir-ts-mode)
+          (yaml-mode . yaml-ts-mode)))
+  :config
+  ;; Function to ensure Tree-sitter parser is installed
+  (defun my/ensure-treesit-parser (lang)
+    "Ensure Tree-sitter parser for LANG is installed."
+    (unless (treesit-language-available-p lang)
+      (treesit-install-language-grammar lang)))
+  ;; Automatically install parsers for listed languages
+  (dolist (lang '(python javascript css html json bash elixir yaml))
+    (my/ensure-treesit-parser lang)))
+
+;; Enhance syntax highlighting with `font-lock`
+(use-package font-lock
+  :straight (:type built-in)
+  :config
+  (setq treesit-font-lock-level 4)) ;; Maximum level for detailed syntax highlighting
+
+;; Ensure `tree-sitter` and `tree-sitter-langs` are installed
+(use-package tree-sitter
+  :straight t
+  :hook ((prog-mode . global-tree-sitter-mode)
+         (tree-sitter-after-on . tree-sitter-hl-mode))
+  :config
+  ;; Map major modes to Tree-sitter languages
+  (setq tree-sitter-major-mode-language-alist
+        '((js-mode . javascript)
+          (jsx-mode . javascript)
+          (php-mode . php)
+          (elixir-mode . elixir)
+          (yaml-mode . yaml))))
+
+(use-package tree-sitter-langs
+  :straight t)
+
+#+end_src
+
 ** Eglot
 #+begin_src emacs-lisp
           (use-package eglot
@@ -496,27 +507,6 @@
                 (lambda ()
                   (add-hook 'before-save-hook #'eglot-format-buffer -10 t))))
 
-
-            ;; Install necessary tree-sitter grammars
-            (use-package tree-sitter
-              :straight t
-              :config
-              (add-to-list 'tree-sitter-major-mode-language-alist '(js-mode . ts-mode))
-              (add-to-list 'tree-sitter-major-mode-language-alist '(jsx-mode . ts-mode))
-              ;; (add-to-list 'tree-sitter-major-mode-language-alist '(typescript-mode . ts-mode))
-              ;; (add-to-list 'tree-sitter-major-mode-language-alist '(typescript-ts-mode . ts-mode))
-              ;; (add-to-list 'tree-sitter-major-mode-language-alist '(python-mode . python))
-              (add-to-list 'tree-sitter-major-mode-language-alist '(php-mode . php))
-              (add-to-list 'tree-sitter-major-mode-language-alist '(elixir-mode . elixir))
-              (add-to-list 'tree-sitter-major-mode-language-alist '(go-mode . go))
-              ;; (add-to-list 'tree-sitter-major-mode-language-alist '(c++-mode . cpp))
-      )
-            ;; Automatically install and configure grammars for supported languages
-            (use-package tree-sitter-langs
-              :straight t
-              :config
-              (global-tree-sitter-mode)
-              (add-hook 'tree-sitter-after-on-hook #'tree-sitter-hl-mode))
 
 #+end_src
 ** Company
@@ -746,178 +736,171 @@
 #+begin_src emacs-lisp
 
 
-        ;; Enable LSP logging (optional for debugging)
-        (setq lsp-log-io nil)
+    ;; Enable LSP logging (optional for debugging)
+    (setq lsp-log-io nil)
 
-        (use-package pdf-tools
-          :ensure t
-          :config
-          (pdf-tools-install)
-          (setq TeX-view-program-selection '((output-pdf "PDF Tools"))
-                TeX-source-correlate-start-server t)
-          (add-hook 'TeX-after-compilation-finished-functions
-                    #'TeX-revert-document-buffer))
-        (setq TeX-source-correlate-mode t
-              TeX-source-correlate-start-server t)
+    (use-package pdf-tools
+      :ensure t
+      :config
+      (pdf-tools-install)
+      (setq TeX-view-program-selection '((output-pdf "PDF Tools"))
+            TeX-source-correlate-start-server t)
+      (add-hook 'TeX-after-compilation-finished-functions
+                #'TeX-revert-document-buffer))
+    (setq TeX-source-correlate-mode t
+          TeX-source-correlate-start-server t)
 
-        (straight-use-package 'which-key)
-        (use-package which-key
-          :ensure t
-          :config
-          (which-key-mode)
-          (setq which-key-idle-delay 0.3))
+    (straight-use-package 'which-key)
+    (use-package which-key
+      :ensure t
+      :config
+      (which-key-mode)
+      (setq which-key-idle-delay 0.3))
 
-        (straight-use-package 'hydra)
-        (use-package hydra
-          :ensure t
-          :config
-          ;; Example hydra for window management
-          (defhydra hydra-window (:color pink :hint nil)
-            "
-          Movement: [_h_] left  [_j_] down  [_k_] up  [_l_] right   Actions: [_v_] split [_x_] delete [_o_] maximize [_b_] balance [_q_] quit
-          "
-            ("h" windmove-left)
-            ("j" windmove-down)
-            ("k" windmove-up)
-            ("l" windmove-right)
-            ("v" split-window-right)
-            ("x" delete-window)
-            ("o" delete-other-windows)
-            ("b" balance-windows)
-            ("q" nil)))
-
-
-        (straight-use-package 'ivy)
-        (straight-use-package 'counsel)
-        (straight-use-package 'swiper)
-
-        (use-package ivy
-          :ensure t
-          :config
-          (ivy-mode 1)
-          (setq ivy-use-virtual-buffers t
-                ivy-count-format "(%d/%d) "))
-        (use-package counsel
-          :after ivy
-          :config
-          (counsel-mode 1))
-        (use-package swiper
-          :after ivy
-          :bind ("C-s" . swiper))
-
-        (straight-use-package 'magit)
-        (use-package magit
-          :ensure t
-          :bind ("C-x g" . magit-status))
-        (my-leader-def
-          "g g" 'magit-status)  ;; Use SPC g for Magit status
-
-        (straight-use-package 'yasnippet)
-        (use-package yasnippet
-          :ensure t
-      :hook ((php-mode . yas-minor-mode)
-               (js2-mode . yas-minor-mode)
-               (rjsx-mode . yas-minor-mode))
-          :config
-          (yas-global-mode 1))
-
-        (straight-use-package 'flycheck)
-        (use-package flycheck
-          :ensure t
-          :init (global-flycheck-mode))
-
-        (straight-use-package 'editorconfig)
-        (use-package editorconfig
-          :ensure t
-          :config
-          (editorconfig-mode 1))
-
-        ;; Non-keybindings general settings
-
-        (setq select-enable-clipboard t)
-        (setq select-enable-primary t)
+    (straight-use-package 'hydra)
+    (use-package hydra
+      :ensure t
+      :config
+      ;; Example hydra for window management
+      (defhydra hydra-window (:color pink :hint nil)
+        "
+      Movement: [_h_] left  [_j_] down  [_k_] up  [_l_] right   Actions: [_v_] split [_x_] delete [_o_] maximize [_b_] balance [_q_] quit
+      "
+        ("h" windmove-left)
+        ("j" windmove-down)
+        ("k" windmove-up)
+        ("l" windmove-right)
+        ("v" split-window-right)
+        ("x" delete-window)
+        ("o" delete-other-windows)
+        ("b" balance-windows)
+        ("q" nil)))
 
 
-        (straight-use-package 'treemacs)
-        (straight-use-package 'treemacs-projectile)
+    (straight-use-package 'ivy)
+    (straight-use-package 'counsel)
+    (straight-use-package 'swiper)
 
-        (use-package treemacs
-          :ensure t
-          :bind ("C-x t" . treemacs))
+    (use-package ivy
+      :ensure t
+      :config
+      (ivy-mode 1)
+      (setq ivy-use-virtual-buffers t
+            ivy-count-format "(%d/%d) "))
+    (use-package counsel
+      :after ivy
+      :config
+      (counsel-mode 1))
+    (use-package swiper
+      :after ivy
+      :bind ("C-s" . swiper))
 
-        (straight-use-package 'dashboard)
-        (use-package dashboard
-          :ensure t
-          :config
-          (setq dashboard-startup-banner 'official
-                dashboard-center-content t
-                dashboard-items '((recents . 5)
-                                  (projects . 5)))
-          (dashboard-setup-startup-hook))
+    (straight-use-package 'magit)
+    (use-package magit
+      :ensure t
+      :bind ("C-x g" . magit-status))
+    (my-leader-def
+      "g g" 'magit-status)  ;; Use SPC g for Magit status
 
-        (straight-use-package 'evil-mc)
-        (use-package evil-mc
-          :ensure t
-          :config
-          ;; Enable evil-mc globally
-          (global-evil-mc-mode 1)
-          )
+    (straight-use-package 'yasnippet)
+    (use-package yasnippet
+      :ensure t
+  :hook ((php-mode . yas-minor-mode)
+           (js2-mode . yas-minor-mode)
+           (rjsx-mode . yas-minor-mode))
+      :config
+      (yas-global-mode 1))
 
-        (straight-use-package 'expand-region)
-        (use-package expand-region
-          :ensure t
-          :bind ("C-=" . er/expand-region))
+    (straight-use-package 'flycheck)
+    (use-package flycheck
+      :ensure t
+      :init (global-flycheck-mode))
 
-        (straight-use-package 'smartparens)
-        (use-package smartparens
-          :ensure t
-          :config
-          (smartparens-global-mode t))
+    (straight-use-package 'editorconfig)
+    (use-package editorconfig
+      :ensure t
+      :config
+      (editorconfig-mode 1))
 
-        (use-package undo-tree
-          :straight t
-          :init
-          ;; Set the directory for storing undo history files.
-          (setq undo-tree-history-directory-alist
-                '(("." . "~/.config/emacs/tmp/undo-tree")))
+    ;; Non-keybindings general settings
 
-          ;; Enable auto-saving of undo history for all buffers.
-          (setq undo-tree-auto-save-history t)
-
-          ;; Show timestamps and diffs in the undo tree visualizer.
-          (setq undo-tree-visualizer-timestamps t
-                undo-tree-visualizer-diff t)
-
-          ;; Limit undo history size for performance (optional).
-          (setq undo-tree-history-limit 500
-                undo-tree-strong-limit 1000
-                undo-tree-outer-limit 1000000)
-
-          :config
-          ;; Enable global undo tree mode.
-          (global-undo-tree-mode 1)
-
-          ;; Set a custom keybinding for undo tree visualization.
-          (global-set-key (kbd "C-x u") 'undo-tree-visualize)
-
-          ;; Customize the visualizer mode for ease of use.
-          (add-hook 'undo-tree-visualizer-mode-hook
-                    (lambda ()
-                      (define-key undo-tree-visualizer-mode-map (kbd "q") 'quit-window))))
+    (setq select-enable-clipboard t)
+    (setq select-enable-primary t)
 
 
-        ;; config/autocompletion/company.el
+    (straight-use-package 'treemacs)
+    (straight-use-package 'treemacs-projectile)
 
-        (straight-use-package 'company)
-        (require 'company)
+    (use-package treemacs
+      :ensure t
+      :bind ("C-x t" . treemacs))
 
-        ;; Enable company mode globally
-        (add-hook 'after-init-hook 'global-company-mode)
+    (straight-use-package 'dashboard)
+    (use-package dashboard
+      :ensure t
+      :config
+      (setq dashboard-startup-banner 'official
+            dashboard-center-content t
+            dashboard-items '((recents . 5)
+                              (projects . 5)))
+      (dashboard-setup-startup-hook))
 
-        ;; Set some custom company options
-        (setq company-idle-delay 0.2)  ;; Time before suggestions pop up
-        (setq company-minimum-prefix-length 2)  ;; Start suggesting after typing 2 characters
 
-        ;; Enable company-mode in specific major modes, such as programming languages
-        (add-hook 'prog-mode-hook 'company-mode)  ;; Enable in programming modes
+    (straight-use-package 'expand-region)
+    (use-package expand-region
+      :ensure t
+      :bind ("C-=" . er/expand-region))
+
+    (straight-use-package 'smartparens)
+    (use-package smartparens
+      :ensure t
+      :config
+      (smartparens-global-mode t))
+
+    (use-package undo-tree
+      :straight t
+      :init
+      ;; Set the directory for storing undo history files.
+      (setq undo-tree-history-directory-alist
+            '(("." . "~/.config/emacs/tmp/undo-tree")))
+
+      ;; Enable auto-saving of undo history for all buffers.
+      (setq undo-tree-auto-save-history t)
+
+      ;; Show timestamps and diffs in the undo tree visualizer.
+      (setq undo-tree-visualizer-timestamps t
+            undo-tree-visualizer-diff t)
+
+      ;; Limit undo history size for performance (optional).
+      (setq undo-tree-history-limit 500
+            undo-tree-strong-limit 1000
+            undo-tree-outer-limit 1000000)
+
+      :config
+      ;; Enable global undo tree mode.
+      (global-undo-tree-mode 1)
+
+      ;; Set a custom keybinding for undo tree visualization.
+      (global-set-key (kbd "C-x u") 'undo-tree-visualize)
+
+      ;; Customize the visualizer mode for ease of use.
+      (add-hook 'undo-tree-visualizer-mode-hook
+                (lambda ()
+                  (define-key undo-tree-visualizer-mode-map (kbd "q") 'quit-window))))
+
+
+    ;; config/autocompletion/company.el
+
+    (straight-use-package 'company)
+    (require 'company)
+
+    ;; Enable company mode globally
+    (add-hook 'after-init-hook 'global-company-mode)
+
+    ;; Set some custom company options
+    (setq company-idle-delay 0.2)  ;; Time before suggestions pop up
+    (setq company-minimum-prefix-length 2)  ;; Start suggesting after typing 2 characters
+
+    ;; Enable company-mode in specific major modes, such as programming languages
+    (add-hook 'prog-mode-hook 'company-mode)  ;; Enable in programming modes
 #+end_src
