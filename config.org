@@ -26,7 +26,6 @@
   - [[#php][PHP]]
   - [[#po][PO]]
 - [[#pdf][Pdf]]
-- [[#which-key][Which-key]]
 - [[#hydra][Hydra]]
 - [[#ivy][Ivy]]
 - [[#counsel][Counsel]]
@@ -209,9 +208,18 @@
                 :ensure t
                 :config
                 (general-create-definer my-leader-def
-                  :keymaps 'normal
+                  :keymaps '(normal visual emacs)
                   :prefix "SPC"
-                  :global-prefix "M-m"))
+                  :global-prefix "C-SPC"))
+
+
+      (straight-use-package 'which-key)
+      (use-package which-key
+        :ensure t
+        :config
+        (which-key-mode)
+        (setq which-key-idle-delay 0.3)
+  )
 
 
               ;; File-related operations under 'f'
@@ -772,16 +780,6 @@
               #'TeX-revert-document-buffer))
   (setq TeX-source-correlate-mode t
         TeX-source-correlate-start-server t)
-#+end_src
-
-* Which-key
-#+begin_src emacs-lisp
-    (straight-use-package 'which-key)
-    (use-package which-key
-      :ensure t
-      :config
-      (which-key-mode)
-      (setq which-key-idle-delay 0.3))
 #+end_src
 
 * Hydra
