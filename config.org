@@ -205,12 +205,14 @@
               ;; Core Keybindings Configuration
 
               (use-package general
-                :ensure t
-                :config
-                (general-create-definer my-leader-def
-                  :keymaps '(normal visual emacs)
-                  :prefix "SPC"
-                  :global-prefix "C-SPC"))
+  :ensure t
+  :config
+  ;; Create a leader key definer with SPC as the prefix in Evil modes
+  (general-create-definer my-leader-def
+    :states '(normal visual motion)  ;; States for Evil mode
+    :keymaps 'override              ;; Override any conflicting keymaps
+    :prefix "SPC"                   ;; Leader key in Evil
+    :global-prefix "C-SPC"))
 
 
       (straight-use-package 'which-key)
