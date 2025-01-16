@@ -564,6 +564,7 @@
                 (funcall major-mode-fn)
                 (indent-region (point-min) (point-max)))) ;; Format code
             (org-edit-src-exit)))))) ;; Exit the source block
+  (global-set-key (kbd "C-c f") #'format-code-blocks)
 #+end_src
 ** Completion Framework
 
