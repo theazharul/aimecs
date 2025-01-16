@@ -15,8 +15,11 @@
 - [[#lsp-and-programming][LSP and Programming]]
   - [[#treesit][Treesit]]
   - [[#eglot][Eglot]]
-  - [[#company][Company]]
-  - [[#flycheck][Flycheck]]
+  - [[#completion-framework][Completion Framework]]
+  - [[#minibuffer-completion][Minibuffer Completion]]
+  - [[#search-and-navigation][Search and Navigation]]
+  - [[#context-sensitive-actions-and-annotations][Context-sensitive actions and annotations]]
+  - [[#syntax-checking][Syntax checking]]
   - [[#prettier][Prettier]]
   - [[#web-mode][Web mode]]
   - [[#python][Python]]
@@ -27,9 +30,6 @@
   - [[#po][PO]]
 - [[#pdf][Pdf]]
 - [[#hydra][Hydra]]
-- [[#ivy][Ivy]]
-- [[#counsel][Counsel]]
-- [[#swiper][Swiper]]
 - [[#magit][Magit]]
 - [[#dashboard][Dashboard]]
 - [[#rest][Rest]]
@@ -444,11 +444,6 @@
     "p" 'projectile-command-map  ;; Use SPC p for Projectile commands
     "/" 'projectile-ripgrep)     ;; Bind / to projectile-ripgrep under Projectile commands
 
-  ;; Optional: Integrate with Ivy for better completion
-  (use-package counsel-projectile
-    :ensure t
-    :config
-    (counsel-projectile-mode 1))
 
 #+end_src
 
@@ -510,68 +505,153 @@
 
 ** Eglot
 #+begin_src emacs-lisp
-    ;; Ensure Tree-sitter is available
-    (when (and (functionp 'treesit-available-p) (treesit-available-p))
-      (message "Tree-sitter is available"))
+        ;; Ensure Tree-sitter is available
+        (when (and (functionp 'treesit-available-p) (treesit-available-p))
+          (message "Tree-sitter is available"))
 
-              (use-package eglot
-          :init
-          ;; Reduce events buffer size and exclude eldoc if desired
-          (setq eglot-events-buffer-size 0
-                eglot-stay-out-of '(eldoc))
-          ;; Configure eglot-server-programs for various languages
-          (setq eglot-server-programs
-                `((python-ts-mode   . ("pyright-langserver" "--stdio"))
-      (elixir-ts-mode . ("~/.config/emacs/elixir-ls/release/language_server.sh"))
-                  (css-ts-mode      . ("vscode-css-languageserver" "--stdio"))
-                  (html-ts-mode     . ("vscode-html-languageserver" "--stdio"))
-  ((js-ts-mode tsx-ts-mode typescript-ts-mode) . ("typescript-language-server" "--stdio"))
-                  (json-ts-mode     . ("vscode-json-languageserver" "--stdio"))
-                  (go-ts-mode       . ("gopls"))
-                  (yaml-ts-mode     . ("yaml-language-server" "--stdio"))
-                  (php-mode         . ("intelephense" "--stdio"))
-                  (dart-mode        . ("dart" "language-server"))
-                  ))
+                  (use-package eglot
+              :init
+              ;; Reduce events buffer size and exclude eldoc if desired
+              (setq eglot-events-buffer-size 0
+                    eglot-stay-out-of '(eldoc))
+              ;; Configure eglot-server-programs for various languages
+              (setq eglot-server-programs
+                    `((python-ts-mode   . ("pyright-langserver" "--stdio"))
+          (elixir-ts-mode . ("~/.config/emacs/elixir-ls/release/language_server.sh"))
+                      (css-ts-mode      . ("vscode-css-languageserver" "--stdio"))
+                      (html-ts-mode     . ("vscode-html-languageserver" "--stdio"))
+      ((js-ts-mode tsx-ts-mode typescript-ts-mode) . ("typescript-language-server" "--stdio"))
+                      (json-ts-mode     . ("vscode-json-languageserver" "--stdio"))
+                      (go-ts-mode       . ("gopls"))
+                      (yaml-ts-mode     . ("yaml-language-server" "--stdio"))
+                      (php-mode         . ("intelephense" "--stdio"))
+                      (dart-mode        . ("dart" "language-server"))
+                      ))
 
-          ;; Ensure tree-sitter grammars are installed for languages that support it
-          :hook
-          ((python-ts-mode js-ts-mode tsx-ts-mode typescript-ts-mode css-ts-mode html-ts-mode json-ts-mode
-                            elixir-ts-mode go-ts-mode yaml-ts-mode php-mode dart-mode)
-           . eglot-ensure)
+              ;; Ensure tree-sitter grammars are installed for languages that support it
+              :hook
+              ((python-ts-mode js-ts-mode tsx-ts-mode typescript-ts-mode css-ts-mode html-ts-mode json-ts-mode
+                                elixir-ts-mode go-ts-mode yaml-ts-mode php-mode dart-mode)
+               . eglot-ensure)
 
-          :config
-          ;; Automatically format on save for eglot-managed buffers
-          (add-hook 'eglot-managed-mode-hook
-                    (lambda ()
-                      (add-hook 'before-save-hook #'eglot-format-buffer -10 t))))
+              :config
+              ;; Automatically format on save for eglot-managed buffers
+              (add-hook 'eglot-managed-mode-hook
+                        (lambda ()
+                          (add-hook 'before-save-hook #'eglot-format-buffer -10 t)))
+(add-hook 'eglot-managed-mode-hook
+            (lambda ()
+              (add-hook 'flymake-diagnostic-functions #'eglot-flymake-backend nil t))))
+
+  
 
 
 #+end_src
-** Company
+** Completion Framework
+
 #+begin_src emacs-lisp
-    ;; Optional Completion Framework
-    (use-package company
-      :straight t
-      :hook (prog-mode . company-mode)
-      :config
-      (setq company-minimum-prefix-length 2
-            company-idle-delay 0.2
-            company-backends '(company-capf))
-      (setq company-dabbrev-downcase nil)
-      (setq company-show-numbers t)
-      (setq company-tooltip-align-annotations t))
+;; Corfu configuration for Evil
+(use-package corfu
+  :ensure t
+  :custom
+  (corfu-cycle t)
+  (corfu-auto t)
+  (corfu-auto-delay 0.2)
+  (corfu-auto-prefix 2)
+  (corfu-quit-no-match 'separator)
+  (corfu-preview-current nil)
+  :bind (:map corfu-map
+              ("<tab>" . corfu-next)    ;; Navigate forward
+              ("S-<tab>" . corfu-previous) ;; Navigate backward
+              ("C-j" . corfu-next)     ;; Evil-style downward navigation
+              ("C-k" . corfu-previous)) ;; Evil-style upward navigation)
+  :init
+  (global-corfu-mode))
 #+end_src
-** Flycheck
+** Minibuffer Completion
+
 #+begin_src emacs-lisp
-  ;; Optional Syntax Checking with Flycheck
-  (use-package flycheck
-    :straight t
-    :hook (prog-mode . flycheck-mode)
+;; Vertico configuration with Evil bindings
+(use-package vertico
+  :ensure t
+  :custom
+  (vertico-cycle t)
+  :bind (:map vertico-map
+              ("C-j" . vertico-next)     ;; Navigate down
+              ("C-k" . vertico-previous) ;; Navigate up
+              ("C-l" . vertico-exit)     ;; Exit completion
+              ("C-h" . backward-kill-word)) ;; Kill word backward
+  :init
+  (vertico-mode))
+
+#+end_src
+** Search and Navigation
+
+#+begin_src emacs-lisp
+;; Consult with Evil-friendly keybindings
+(use-package consult
+  :ensure t
+  :bind
+  (:map evil-normal-state-map
+        ("<leader>f" . consult-find)         ;; Search files
+        ("<leader>b" . consult-buffer)       ;; Switch buffer
+        ("<leader>l" . consult-line)         ;; Search in buffer
+        ("<leader>g" . consult-grep)         ;; Grep search
+        ("<leader>m" . consult-imenu)        ;; Jump to symbol in buffer
+        ("<leader>r" . consult-recent-file)) ;; Open recent files
+  :custom
+  (consult-preview-key 'any)
+  :hook
+  (completion-list-mode . consult-preview-at-point-mode))
+
+#+end_src
+** Context-sensitive actions and annotations
+#+begin_src emacs-lisp
+;; Embark with Evil adjustments
+(use-package embark
+  :ensure t
+  :bind
+  (:map evil-normal-state-map
+        ("<leader>." . embark-act)          ;; Contextual action
+        ("<leader>;" . embark-dwim))        ;; Do what I mean
+  :init
+  (setq prefix-help-command #'embark-prefix-help-command))
+
+;; Marginalia for annotations
+(use-package marginalia
+  :ensure t
+  :after vertico
+  :init
+  (marginalia-mode))
+
+#+end_src
+** Syntax checking
+#+begin_src emacs-lisp
+  (use-package flymake
+    :ensure nil ;; Flymake is built into Emacs; no need to install.
+    :hook ((prog-mode . flymake-mode)       ;; Enable Flymake for programming modes.
+           (text-mode . flymake-mode))     ;; Enable Flymake for text modes if desired.
+    :bind (:map flymake-mode-map
+                ("C-c ! l" . flymake-show-diagnostics-buffer) ;; Show diagnostics in a dedicated buffer.
+                ("C-c ! n" . flymake-goto-next-error)         ;; Jump to the next error.
+                ("C-c ! p" . flymake-goto-prev-error))        ;; Jump to the previous error.
     :config
-    (setq flycheck-indication-mode 'right-fringe
-          flycheck-highlighting-mode 'symbols
-          flycheck-check-syntax-automatically '(mode-enabled save)
-          flycheck-display-errors-delay 0.3))
+    ;; Set how Flymake displays diagnostics (e.g., underline, fringe markers).
+    (setq flymake-fringe-indicator-position 'right-fringe)
+    (setq flymake-start-on-save-buffer t)   ;; Start checking on save.
+    (setq flymake-no-changes-timeout 0.5)  ;; Start checking after 0.5s of idle time.
+    (setq flymake-diagnostic-functions nil) ;; Use only external checkers or custom functions.
+
+    ;; Optionally, configure the diagnostic display function.
+    (add-hook 'flymake-mode-hook
+              (lambda ()
+                (setq flymake-mode-line-format
+                      '(" Flymake" flymake-mode-line-exception flymake-mode-line-counters)))))
+
+  (use-package flymake-popon
+  :ensure t
+  :hook (flymake-mode . flymake-popon-mode))
+
 #+end_src
 ** Prettier 
 #+begin_src emacs-lisp
@@ -818,39 +898,6 @@
         ("q" nil)))
 #+end_src
 
-* Ivy
-#+begin_src emacs-lisp
-
-  (straight-use-package 'ivy)
-
-    (use-package ivy
-      :ensure t
-      :config
-      (ivy-mode 1)
-      (setq ivy-use-virtual-buffers t
-            ivy-count-format "(%d/%d) "))
-#+end_src
-
-* Counsel
-#+begin_src emacs-lisp
-
-  (straight-use-package 'counsel)
-
-    (use-package counsel
-      :after ivy
-      :config
-      (counsel-mode 1))
-#+end_src
-
-* Swiper
-#+begin_src emacs-lisp
-
-    (straight-use-package 'swiper)
-
-    (use-package swiper
-      :after ivy
-      :bind ("C-s" . swiper))
-#+end_src
 
 * Magit
 #+begin_src emacs-lisp
@@ -880,8 +927,8 @@
 #+begin_src emacs-lisp
 
 
-    ;; Enable LSP logging (optional for debugging)
-    (setq lsp-log-io nil)
+        ;; Enable LSP logging (optional for debugging)
+        (setq lsp-log-io nil)
 
 
 
@@ -889,96 +936,79 @@
 
 
 
-    (straight-use-package 'yasnippet)
-    (use-package yasnippet
-      :ensure t
-  :hook ((php-mode . yas-minor-mode)
-           (js2-mode . yas-minor-mode)
-           (rjsx-mode . yas-minor-mode))
-      :config
-      (yas-global-mode 1))
-
-    (straight-use-package 'flycheck)
-    (use-package flycheck
-      :ensure t
-      :init (global-flycheck-mode))
-
-    (straight-use-package 'editorconfig)
-    (use-package editorconfig
-      :ensure t
-      :config
-      (editorconfig-mode 1))
-
-    ;; Non-keybindings general settings
-
-    (setq select-enable-clipboard t)
-    (setq select-enable-primary t)
+        (straight-use-package 'yasnippet)
+        (use-package yasnippet
+          :ensure t
+      :hook ((php-mode . yas-minor-mode)
+               (js2-mode . yas-minor-mode)
+               (rjsx-mode . yas-minor-mode)
+  (elixir-mode . yas-minor-mode)
+    )
+          :config
+          (yas-global-mode 1))
 
 
-    (straight-use-package 'treemacs)
-    (straight-use-package 'treemacs-projectile)
+        (straight-use-package 'editorconfig)
+        (use-package editorconfig
+          :ensure t
+          :config
+          (editorconfig-mode 1))
 
-    (use-package treemacs
-      :ensure t
-      :bind ("C-x t" . treemacs))
+        ;; Non-keybindings general settings
+
+        (setq select-enable-clipboard t)
+        (setq select-enable-primary t)
+
+
+        (straight-use-package 'treemacs)
+        (straight-use-package 'treemacs-projectile)
+
+        (use-package treemacs
+          :ensure t
+          :bind ("C-x t" . treemacs))
 
 
 
-    (straight-use-package 'expand-region)
-    (use-package expand-region
-      :ensure t
-      :bind ("C-=" . er/expand-region))
+        (straight-use-package 'expand-region)
+        (use-package expand-region
+          :ensure t
+          :bind ("C-=" . er/expand-region))
 
-    (straight-use-package 'smartparens)
-    (use-package smartparens
-      :ensure t
-      :config
-      (smartparens-global-mode t))
+        (straight-use-package 'smartparens)
+        (use-package smartparens
+          :ensure t
+          :config
+          (smartparens-global-mode t))
 
-    (use-package undo-tree
-      :straight t
-      :init
-      ;; Set the directory for storing undo history files.
-      (setq undo-tree-history-directory-alist
-            '(("." . "~/.config/emacs/tmp/undo-tree")))
+        (use-package undo-tree
+          :straight t
+          :init
+          ;; Set the directory for storing undo history files.
+          (setq undo-tree-history-directory-alist
+                '(("." . "~/.config/emacs/tmp/undo-tree")))
 
-      ;; Enable auto-saving of undo history for all buffers.
-      (setq undo-tree-auto-save-history t)
+          ;; Enable auto-saving of undo history for all buffers.
+          (setq undo-tree-auto-save-history t)
 
-      ;; Show timestamps and diffs in the undo tree visualizer.
-      (setq undo-tree-visualizer-timestamps t
-            undo-tree-visualizer-diff t)
+          ;; Show timestamps and diffs in the undo tree visualizer.
+          (setq undo-tree-visualizer-timestamps t
+                undo-tree-visualizer-diff t)
 
-      ;; Limit undo history size for performance (optional).
-      (setq undo-tree-history-limit 500
-            undo-tree-strong-limit 1000
-            undo-tree-outer-limit 1000000)
+          ;; Limit undo history size for performance (optional).
+          (setq undo-tree-history-limit 500
+                undo-tree-strong-limit 1000
+                undo-tree-outer-limit 1000000)
 
-      :config
-      ;; Enable global undo tree mode.
-      (global-undo-tree-mode 1)
+          :config
+          ;; Enable global undo tree mode.
+          (global-undo-tree-mode 1)
 
-      ;; Set a custom keybinding for undo tree visualization.
-      (global-set-key (kbd "C-x u") 'undo-tree-visualize)
+          ;; Set a custom keybinding for undo tree visualization.
+          (global-set-key (kbd "C-x u") 'undo-tree-visualize)
 
-      ;; Customize the visualizer mode for ease of use.
-      (add-hook 'undo-tree-visualizer-mode-hook
-                (lambda ()
-                  (define-key undo-tree-visualizer-mode-map (kbd "q") 'quit-window))))
+          ;; Customize the visualizer mode for ease of use.
+          (add-hook 'undo-tree-visualizer-mode-hook
+                    (lambda ()
+                      (define-key undo-tree-visualizer-mode-map (kbd "q") 'quit-window))))
 
-
-    ;; config/autocompletion/company.el
-
-    (straight-use-package 'company)
-    (require 'company)
-
-    ;; Enable company mode globally
-    (add-hook 'after-init-hook 'global-company-mode)
-
-    ;; Set some custom company options
-    (setq company-idle-delay 0.2)  ;; Time before suggestions pop up
-    (setq company-minimum-prefix-length 2)  ;; Start suggesting after typing 2 characters
-
-    ;; Enable company-mode in specific major modes, such as programming languages
-    (add-hook 'prog-mode-hook 'company-mode)  ;; Enable in programming modes
 #+end_src
