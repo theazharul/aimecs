@@ -156,174 +156,188 @@
 
 * Themes and Fonts
 #+begin_src emacs-lisp
-(straight-use-package 'doom-themes)
-  (use-package doom-themes
-    :ensure t
-    :config
-    (load-theme 'doom-gruvbox t))
+  (straight-use-package 'doom-themes)
+    (use-package doom-themes
+      :ensure t
+      :config
+      (load-theme 'doom-gruvbox t))
 
-  (defvar my-org-dir "~/Sync/aimacs/aimorg" "Directory for Org files")
+    (defvar my-org-dir "~/Sync/aimacs/aimorg" "Directory for Org files")
 
-  (defun my/create-directory-if-needed (dir)
-    "Create directory DIR if it doesn't exist."
-    (unless (file-exists-p dir)
-      (make-directory dir t)))
+    (defun my/create-directory-if-needed (dir)
+      "Create directory DIR if it doesn't exist."
+      (unless (file-exists-p dir)
+        (make-directory dir t)))
 
-  (defun my/download-font (url font-name install-dir)
-    "Download and install a font from URL, save it to INSTALL-DIR."
-    (my/create-directory-if-needed install-dir)
-    (let ((font-file (expand-file-name (concat font-name ".ttf") install-dir)))
-      (unless (file-exists-p font-file)
-        (url-copy-file url font-file t)
-        (message "Downloaded font: %s" font-file))
-      font-file))
+    (defun my/download-font (url font-name install-dir)
+      "Download and install a font from URL, save it to INSTALL-DIR."
+      (my/create-directory-if-needed install-dir)
+      (let ((font-file (expand-file-name (concat font-name ".ttf") install-dir)))
+        (unless (file-exists-p font-file)
+          (url-copy-file url font-file t)
+          (message "Downloaded font: %s" font-file))
+        font-file))
 
-  (defun my/install-font (font-file font-name)
-    "Install a font from FONT-FILE and apply it to Emacs."
-    (when (file-exists-p font-file)
-      (message "Installing font %s..." font-name)
-      (set-fontset-font t 'unicode font-file nil 'prepend)
-      (set-face-attribute 'default nil :font font-name :height 140)
-      (message "Font %s installed and applied." font-name)))
+    (defun my/install-font (font-file font-name)
+      "Install a font from FONT-FILE and apply it to Emacs."
+      (when (file-exists-p font-file)
+        (message "Installing font %s..." font-name)
+        (set-fontset-font t 'unicode font-file nil 'prepend)
+        (set-face-attribute 'default nil :font font-name :height 140)
+        (message "Font %s installed and applied." font-name)))
 
-  (defun my/load-source-code-pro-font ()
-    "Download and apply Source Code Pro font."
-    (let* ((font-name "Source Code Pro")
-           (font-url "https://github.com/adobe-fonts/source-code-pro/releases/download/variable-fonts/SourceCodePro-VariableFont_wght.ttf")
-           (font-install-dir (expand-file-name "assets/fonts" user-emacs-directory))
-           (font-file (my/download-font font-url font-name font-install-dir)))
-      (my/install-font font-file font-name)))
+    (defun my/load-source-code-pro-font ()
+      "Download and apply Source Code Pro font."
+      (let* ((font-name "Source Code Pro")
+             (font-url "https://github.com/adobe-fonts/source-code-pro/releases/download/variable-fonts/SourceCodePro-VariableFont_wght.ttf")
+             (font-install-dir (expand-file-name "assets/fonts" user-emacs-directory))
+             (font-file (my/download-font font-url font-name font-install-dir)))
+        (my/install-font font-file font-name)))
 
-  (unless (member "Source Code Pro" (font-family-list))
-    (my/load-source-code-pro-font))
+    (unless (member "Source Code Pro" (font-family-list))
+      (my/load-source-code-pro-font))
 
-  (set-face-attribute 'default nil :font "Source Code Pro" :height 130)
+   (set-face-attribute 'default nil :font "Source Code Pro" :height 130)
 #+end_src
 
 * Keybindings
 #+begin_src emacs-lisp
-              ;; Core Keybindings Configuration
+                  ;; Core Keybindings Configuration
 
-              (use-package general
-  :ensure t
-  :config
-  ;; Create a leader key definer with SPC as the prefix in Evil modes
-  (general-create-definer my-leader-def
-    :states '(normal visual motion)  ;; States for Evil mode
-    :keymaps 'override              ;; Override any conflicting keymaps
-    :prefix "SPC"                   ;; Leader key in Evil
-    :global-prefix "C-SPC"))
-
-
-      (straight-use-package 'which-key)
-      (use-package which-key
-        :ensure t
-        :config
-        (which-key-mode)
-        (setq which-key-idle-delay 0.3)
-  )
+                  (use-package general
+      :ensure t
+      :config
+      ;; Create a leader key definer with SPC as the prefix in Evil modes
+      (general-create-definer my-leader-def
+        :states '(normal visual motion)  ;; States for Evil mode
+        :keymaps 'override              ;; Override any conflicting keymaps
+        :prefix "SPC"                   ;; Leader key in Evil
+        :global-prefix "C-SPC"))
 
 
-              ;; File-related operations under 'f'
-              (my-leader-def
-                "f"  '(:ignore t :which-key "file")
-                "f s" 'save-buffer
-                "f S" 'save-some-buffers
-                "f f" 'find-file
-                "f r" 'recentf-open-files
-                "f d" 'dired
-                "f n" 'make-frame-command
-                "f o" 'find-file-other-window)
-
-              ;; Buffer-related operations under 'b'
-              (my-leader-def
-                "b"  '(:ignore t :which-key "buffer")
-                "b b" 'switch-to-buffer
-                "b k" 'kill-buffer
-                "b K" 'kill-buffer-and-window
-                "b n" 'next-buffer
-                "b p" 'previous-buffer
-                "b d" 'display-buffer
-                "b r" 'rename-buffer
-                "b l" 'list-buffers
-                "b m" 'switch-to-buffer)
-
-              ;; Window management (SPC w)
-              (my-leader-def
-                "w"  '(:ignore t :which-key "window")
-                "w k" 'windmove-up
-                "w j" 'windmove-down
-                "w h" 'windmove-left
-                "w l" 'windmove-right
-                "w s" 'split-window-below
-                "w v" 'split-window-right
-                "w w" 'other-window
-                "w d" 'delete-window
-                "w =" 'balance-windows
-                "w m" 'delete-other-windows
-                "w x" 'winner-undo
-                "w X" 'winner-redo)
-
-              ;; Search commands (SPC s)
-              (my-leader-def
-                "s"  '(:ignore t :which-key "search")
-                "s f" 'swiper
-                "s r" 'replace-string
-                "s p" 'projectile-ag
-                "s b" 'consult-buffer
-                "s t" 'consult-theme)
-
-  ;; Keybindings with SPC prefix for eglot commands
-  (my-leader-def
-    :keymaps 'eglot-mode-map
-    "e"  '(:ignore t :which-key "eglot")
-    "ea" 'eglot-code-actions
-    "ef" 'eglot-format
-    "er" 'eglot-rename
-    "ed" 'eldoc-doc-buffer
-    "eh" 'eglot-help-at-point)
+          (straight-use-package 'which-key)
+          (use-package which-key
+            :ensure t
+            :config
+            (which-key-mode)
+            (setq which-key-idle-delay 0.3)
+      )
 
 
-              ;; Keybindings for Org mode
-      ;; Define a custom function to insert a subheading
-      (defun my/org-insert-subheading ()
-        "Insert a subheading below the current heading."
-        (interactive)
-        (org-insert-heading-after-current)
-        (org-do-demote))
+                  ;; File-related operations under 'f'
+                  (my-leader-def
+                    "f"  '(:ignore t :which-key "file")
+                    "f s" 'save-buffer
+                    "f S" 'save-some-buffers
+                    "f f" 'find-file
+                    "f r" 'recentf-open-files
+                    "f d" 'dired
+                    "f n" 'make-frame-command
+                    "f o" 'find-file-other-window)
 
-              (my-leader-def
-                "o"  '(:ignore t :which-key "Org")
-                "o a" 'org-agenda
-                "o c" 'org-capture
-                "o l" 'org-store-link
-                "o t" 'org-todo
-                "o s" 'org-schedule
-                "o d" 'org-deadline
-        "o P" 'org-paste-subtree
-    "o S" 'my/org-insert-subheading)
+                  ;; Buffer-related operations under 'b'
+                  (my-leader-def
+                    "b"  '(:ignore t :which-key "buffer")
+                    "b b" 'switch-to-buffer
+                    "b k" 'kill-buffer
+                    "b K" 'kill-buffer-and-window
+                    "b n" 'next-buffer
+                    "b p" 'previous-buffer
+                    "b d" 'display-buffer
+                    "b r" 'rename-buffer
+                    "b l" 'list-buffers
+                    "b m" 'switch-to-buffer)
 
-  ;; Global keybinding for C-M-RET in Org mode
-  (with-eval-after-load 'org
-    (general-define-key
-     :keymaps 'org-mode-map
-     "C-M-<return>" #'my/org-insert-subheading))
+                  ;; Window management (SPC w)
+                  (my-leader-def
+                    "w"  '(:ignore t :which-key "window")
+                    "w k" 'windmove-up
+                    "w j" 'windmove-down
+                    "w h" 'windmove-left
+                    "w l" 'windmove-right
+                    "w s" 'split-window-below
+                    "w v" 'split-window-right
+                    "w w" 'other-window
+                    "w d" 'delete-window
+                    "w =" 'balance-windows
+                    "w m" 'delete-other-windows
+                    "w x" 'winner-undo
+                    "w X" 'winner-redo)
 
-              ;; Enable recentf for recent file operations
-              (use-package recentf
-                :straight t
-                :init
-                (recentf-mode 1)
-                :config
-                (setq recentf-max-saved-items 100
-                      recentf-auto-cleanup 'never
-                      recentf-exclude '("/tmp/" "/ssh:" "/\\.git/")))
+                  ;; Search commands (SPC s)
+                  (my-leader-def
+                    "s"  '(:ignore t :which-key "search")
+                    "s f" 'swiper
+                    "s r" 'replace-string
+                    "s p" 'projectile-ag
+                    "s b" 'consult-buffer
+                    "s t" 'consult-theme)
 
-              (global-set-key (kbd "C-x C-b") 'ibuffer)
-              (global-set-key (kbd "M-o") 'other-window)
+      ;; Keybindings with SPC prefix for eglot commands
+      (my-leader-def
+        :keymaps 'eglot-mode-map
+        "e"  '(:ignore t :which-key "eglot")
+        "ea" 'eglot-code-actions
+        "ef" 'eglot-format
+        "er" 'eglot-rename
+        "ed" 'eldoc-doc-buffer
+        "eh" 'eglot-help-at-point)
 
-              (define-key evil-normal-state-map (kbd "u") 'undo-tree-undo)
-              (define-key evil-normal-state-map (kbd "C-r") 'undo-tree-redo)
+
+                  ;; Keybindings for Org mode
+                  (my-leader-def
+                    "o"  '(:ignore t :which-key "Org")
+                    "o a" 'org-agenda
+                    "o c" 'org-capture
+                    "o l" 'org-store-link
+                    "o t" 'org-todo
+                    "o s" 'org-schedule
+                    "o d" 'org-deadline
+            "o P" 'org-paste-subtree)
+
+(with-eval-after-load 'org
+  (general-define-key
+   :keymaps 'org-mode-map
+   "C-<return>" #'org-insert-list-or-heading
+   "C-M-<return>" #'org-insert-subitem-or-subheading))
+
+(defun org-insert-list-or-heading ()
+  "Insert a list item below the current one if on a list, or insert a heading below if on a heading."
+  (interactive)
+  (end-of-line)  ;; Move to the end of the current line to respect content
+  (newline)      ;; Create a new line below
+  (if (org-in-item-p)  ;; Check if point is on a list item
+      (org-insert-item) ;; Insert list item below
+    (org-insert-heading))) ;; Insert heading below
+
+(defun org-insert-subitem-or-subheading ()
+  "Insert a sub-item (one level deeper) in a list, or insert a subheading (one level deeper) if on a heading."
+  (interactive)
+  (end-of-line)  ;; Move to the end of the current line to respect content
+  (newline)      ;; Create a new line below
+  (if (org-in-item-p)  ;; Check if point is on a list item
+      (progn
+        (org-insert-item) ;; Insert item
+        (org-indent-item))  ;; Indent it to the next level (subitem)
+    (org-insert-heading))  ;; Insert heading if on a heading
+  (when (org-at-heading-p)  ;; If on a heading, demote to subheading
+    (org-demote-subtree)))
+
+                  ;; Enable recentf for recent file operations
+                  (use-package recentf
+                    :straight t
+                    :init
+                    (recentf-mode 1)
+                    :config
+                    (setq recentf-max-saved-items 100
+                          recentf-auto-cleanup 'never
+                          recentf-exclude '("/tmp/" "/ssh:" "/\\.git/")))
+
+                  (global-set-key (kbd "C-x C-b") 'ibuffer)
+                  (global-set-key (kbd "M-o") 'other-window)
+
+                  (define-key evil-normal-state-map (kbd "u") 'undo-tree-undo)
+                  (define-key evil-normal-state-map (kbd "C-r") 'undo-tree-redo)
 #+end_src
 
 * Shell
@@ -356,36 +370,37 @@
 
 * Org
 #+begin_src emacs-lisp
-              (use-package org
-                :ensure nil
-                :straight nil
-                :config
-                (setq org-use-sub-superscripts nil
-                      org-log-done t
-                      org-startup-indented t
-                      org-hide-leading-stars t
-                      org-pretty-entities t
-                      org-directory my-org-dir
-                      org-mobile-directory org-directory
-                      org-src-fontify-natively t
-                      org-src-tab-acts-natively t
-                      org-src-window-setup 'current-window
-                      org-agenda-start-on-weekday 5
-                      org-default-notes-file (concat my-org-dir "/0.Inbox.org")
-                      org-special-ctrl-a/e t
-                      org-agenda-files
-                      (remove (concat my-org-dir "/4.Archives.org")
-                              (append (directory-files-recursively my-org-dir "\\.org$")
-                                      (directory-files-recursively "~/Workspace/" "\\.org$")))
-                      org-todo-keywords '((sequence "TODO(t)" "IN_PROGRESS(i)" "IN_REVIEW(r)" "|" "DONE(d)")
-                                          (sequence "NEXT(n)" "WAITING(w@/)" "DELEGATED(D)" "HOLD(h@/)" "|" "CANCELLED(c@/)"))
-                      org-global-properties '(("Effort_ALL" . "0:10 0:15 0:20 0:30 1:00 2:00 3:00 4:00 6:00 8:00"))
-                      org-columns-default-format "%50ITEM(Task) %TODO %TAGS %SCHEDULED %DEADLINE %Effort(Estimated Effort){:} %CLOCKSUM"
-                      org-archive-location (concat my-org-dir "/4.Archives.org::* From %s")
-                      org-refile-targets '((org-agenda-files :maxlevel . 3))
-                      org-capture-templates '(("i" "Inbox" entry (file+headline my-org-dir "/0.Inbox.org" "Inbox")
-                                               "* %?\n"))
-                      org-agenda-window-setup 'current-window))
+             (use-package org
+      :ensure nil
+      :straight nil
+      :config
+      (setq org-use-sub-superscripts nil
+            org-log-done t
+            org-startup-indented t
+            org-hide-leading-stars t
+            org-pretty-entities t
+            org-directory my-org-dir
+            org-mobile-directory org-directory
+            org-src-fontify-natively t
+            org-src-tab-acts-natively t
+            org-src-window-setup 'current-window
+            org-agenda-start-on-weekday 5
+            org-default-notes-file (concat my-org-dir "/0.Inbox.org")
+            org-special-ctrl-a/e t
+            org-agenda-files
+            (remove (concat my-org-dir "/4.Archives.org")
+                    (append (directory-files-recursively my-org-dir "\\.org$")
+                            (directory-files-recursively "~/Workspace/" "\\.org$")))
+            org-todo-keywords '((sequence "TODO(t)" "IN_PROGRESS(i)" "IN_REVIEW(r)" "|" "DONE(d)")
+                                (sequence "NEXT(n)" "WAITING(w@/)" "DELEGATED(D)" "HOLD(h@/)" "|" "CANCELLED(c@/)"))
+            org-global-properties '(("Effort_ALL" . "0:10 0:15 0:20 0:30 1:00 2:00 3:00 4:00 6:00 8:00"))
+            org-columns-default-format "%50ITEM(Task) %TODO %TAGS %SCHEDULED %DEADLINE %Effort(Estimated Effort){:} %CLOCKSUM"
+            org-archive-location (concat my-org-dir "/4.Archives.org::* From %s")
+            org-refile-targets '((org-agenda-files :maxlevel . 3))
+            org-capture-templates '(("i" "Inbox" entry (file+headline my-org-dir "/0.Inbox.org" "Inbox")
+                                   "* %?\n"))
+            org-agenda-window-setup 'current-window))
+
 
               (use-package toc-org
                 :ensure t
