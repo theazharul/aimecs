@@ -2,7 +2,7 @@
 #+AUTHOR: Azhar Ibn Mostafiz
 #+OPTIONS: toc:2
 
-* TABLE OF CONTENT :toc:
+* TABLE OF CONTENT                                                      :toc:
 - [[#initialization-and-setup][Initialization and Setup]]
 - [[#evil][Evil]]
 - [[#basic-configuration][Basic Configuration]]
@@ -15,6 +15,7 @@
 - [[#lsp-and-programming][LSP and Programming]]
   - [[#treesit][Treesit]]
   - [[#eglot][Eglot]]
+  - [[#code-block-formatting][Code Block Formatting]]
   - [[#completion-framework][Completion Framework]]
   - [[#minibuffer-completion][Minibuffer Completion]]
   - [[#search-and-navigation][Search and Navigation]]
@@ -78,55 +79,55 @@
     :config
     (evil-commentary-mode))
 
-    (use-package evil-mc
-      :ensure t
-  :straight t
+  (use-package evil-mc
+    :ensure t
+    :straight t
     :after evil
-      :config
-      ;; Enable evil-mc globally
-      (global-evil-mc-mode 1)
-      )
+    :config
+    ;; Enable evil-mc globally
+    (global-evil-mc-mode 1)
+    )
 #+end_src
 
 * Basic Configuration
 #+begin_src emacs-lisp
-          (use-package emacs
-            :init
-            ;; Set backup directory
-            (setq backup-directory-alist `(("." . "~/.config/emacs/tmp/backups")))
-            ;; Set auto-save directory
-            (setq auto-save-file-name-transforms `((".*" "~/.config/emacs/tmp/auto-save/" t)))
-            ;; Disable lockfiles (#filename#)
-            (setq create-lockfiles nil)
-            :config
-            ;; Ensure directories exist
-            (dolist (dir '("~/.config/emacs/tmp/backups"
-                           "~/.config/emacs/tmp/auto-save"
-                           "~/.config/emacs/tmp/undo-tree"))
-              (unless (file-exists-p dir)
-                (make-directory dir t)))
+  (use-package emacs
+    :init
+    ;; Set backup directory
+    (setq backup-directory-alist `(("." . "~/.config/emacs/tmp/backups")))
+    ;; Set auto-save directory
+    (setq auto-save-file-name-transforms `((".*" "~/.config/emacs/tmp/auto-save/" t)))
+    ;; Disable lockfiles (#filename#)
+    (setq create-lockfiles nil)
+    :config
+    ;; Ensure directories exist
+    (dolist (dir '("~/.config/emacs/tmp/backups"
+                   "~/.config/emacs/tmp/auto-save"
+                   "~/.config/emacs/tmp/undo-tree"))
+      (unless (file-exists-p dir)
+        (make-directory dir t)))
 
-              (setq display-line-numbers-type 't) ;; or 'relative
-              (global-display-line-numbers-mode 1)
-              (global-visual-line-mode 1)
-  (global-hl-line-mode 1)
+    (setq display-line-numbers-type 't) ;; or 'relative
+    (global-display-line-numbers-mode 1)
+    (global-visual-line-mode 1)
+    (global-hl-line-mode 1)
 
-              ;; Disable in specific modes
-              (dolist (mode '(org-mode-hook
-                              eshell-mode-hook
-                              term-mode-hook))
-                (add-hook mode (lambda () (display-line-numbers-mode 0))))
-      :custom
+    ;; Disable in specific modes
+    (dolist (mode '(org-mode-hook
+                    eshell-mode-hook
+                    term-mode-hook))
+      (add-hook mode (lambda () (display-line-numbers-mode 0))))
+    :custom
     ;; Should use:
-     ;; (mapc #'treesit-install-language-grammar (mapcar #'car treesit-language-source-alist))
-     ;; at least once per installation or while changing this list
-     (treesit-language-source-alist
-      '((heex "https://github.com/phoenixframework/tree-sitter-heex")
-        (elixir "https://github.com/elixir-lang/tree-sitter-elixir")))
+    ;; (mapc #'treesit-install-language-grammar (mapcar #'car treesit-language-source-alist))
+    ;; at least once per installation or while changing this list
+    (treesit-language-source-alist
+     '((heex "https://github.com/phoenixframework/tree-sitter-heex")
+       (elixir "https://github.com/elixir-lang/tree-sitter-elixir")))
 
-     (major-mode-remap-alist
-      '((elixir-mode . elixir-ts-mode)))
-      )
+    (major-mode-remap-alist
+     '((elixir-mode . elixir-ts-mode)))
+    )
 
 #+end_src
 
@@ -157,268 +158,267 @@
 * Themes and Fonts
 #+begin_src emacs-lisp
   (straight-use-package 'doom-themes)
-    (use-package doom-themes
-      :ensure t
-      :config
-      (load-theme 'doom-gruvbox t))
+  (use-package doom-themes
+    :ensure t
+    :config
+    (load-theme 'doom-gruvbox t))
 
-    (defvar my-org-dir "~/Sync/aimacs/aimorg" "Directory for Org files")
+  (defvar my-org-dir "~/Sync/aimacs/aimorg" "Directory for Org files")
 
-    (defun my/create-directory-if-needed (dir)
-      "Create directory DIR if it doesn't exist."
-      (unless (file-exists-p dir)
-        (make-directory dir t)))
+  (defun my/create-directory-if-needed (dir)
+    "Create directory DIR if it doesn't exist."
+    (unless (file-exists-p dir)
+      (make-directory dir t)))
 
-    (defun my/download-font (url font-name install-dir)
-      "Download and install a font from URL, save it to INSTALL-DIR."
-      (my/create-directory-if-needed install-dir)
-      (let ((font-file (expand-file-name (concat font-name ".ttf") install-dir)))
-        (unless (file-exists-p font-file)
-          (url-copy-file url font-file t)
-          (message "Downloaded font: %s" font-file))
-        font-file))
+  (defun my/download-font (url font-name install-dir)
+    "Download and install a font from URL, save it to INSTALL-DIR."
+    (my/create-directory-if-needed install-dir)
+    (let ((font-file (expand-file-name (concat font-name ".ttf") install-dir)))
+      (unless (file-exists-p font-file)
+        (url-copy-file url font-file t)
+        (message "Downloaded font: %s" font-file))
+      font-file))
 
-    (defun my/install-font (font-file font-name)
-      "Install a font from FONT-FILE and apply it to Emacs."
-      (when (file-exists-p font-file)
-        (message "Installing font %s..." font-name)
-        (set-fontset-font t 'unicode font-file nil 'prepend)
-        (set-face-attribute 'default nil :font font-name :height 140)
-        (message "Font %s installed and applied." font-name)))
+  (defun my/install-font (font-file font-name)
+    "Install a font from FONT-FILE and apply it to Emacs."
+    (when (file-exists-p font-file)
+      (message "Installing font %s..." font-name)
+      (set-fontset-font t 'unicode font-file nil 'prepend)
+      (set-face-attribute 'default nil :font font-name :height 140)
+      (message "Font %s installed and applied." font-name)))
 
-    (defun my/load-source-code-pro-font ()
-      "Download and apply Source Code Pro font."
-      (let* ((font-name "Source Code Pro")
-             (font-url "https://github.com/adobe-fonts/source-code-pro/releases/download/variable-fonts/SourceCodePro-VariableFont_wght.ttf")
-             (font-install-dir (expand-file-name "assets/fonts" user-emacs-directory))
-             (font-file (my/download-font font-url font-name font-install-dir)))
-        (my/install-font font-file font-name)))
+  (defun my/load-source-code-pro-font ()
+    "Download and apply Source Code Pro font."
+    (let* ((font-name "Source Code Pro")
+           (font-url "https://github.com/adobe-fonts/source-code-pro/releases/download/variable-fonts/SourceCodePro-VariableFont_wght.ttf")
+           (font-install-dir (expand-file-name "assets/fonts" user-emacs-directory))
+           (font-file (my/download-font font-url font-name font-install-dir)))
+      (my/install-font font-file font-name)))
 
-    (unless (member "Source Code Pro" (font-family-list))
-      (my/load-source-code-pro-font))
+  (unless (member "Source Code Pro" (font-family-list))
+    (my/load-source-code-pro-font))
 
-   (set-face-attribute 'default nil :font "Source Code Pro" :height 130)
+  (set-face-attribute 'default nil :font "Source Code Pro" :height 130)
 #+end_src
 
 * Keybindings
 #+begin_src emacs-lisp
-                  ;; Core Keybindings Configuration
+  ;; Core Keybindings Configuration
 
-                  (use-package general
-      :ensure t
-      :config
-      ;; Create a leader key definer with SPC as the prefix in Evil modes
-      (general-create-definer my-leader-def
-        :states '(normal visual motion)  ;; States for Evil mode
-        :keymaps 'override              ;; Override any conflicting keymaps
-        :prefix "SPC"                   ;; Leader key in Evil
-        :global-prefix "C-SPC"))
-
-
-          (straight-use-package 'which-key)
-          (use-package which-key
-            :ensure t
-            :config
-            (which-key-mode)
-            (setq which-key-idle-delay 0.3)
-      )
+  (use-package general
+    :ensure t
+    :config
+    ;; Create a leader key definer with SPC as the prefix in Evil modes
+    (general-create-definer my-leader-def
+      :states '(normal visual motion)  ;; States for Evil mode
+      :keymaps 'override              ;; Override any conflicting keymaps
+      :prefix "SPC"                   ;; Leader key in Evil
+      :global-prefix "C-SPC"))
 
 
-                  ;; File-related operations under 'f'
-                  (my-leader-def
-                    "f"  '(:ignore t :which-key "file")
-                    "f s" 'save-buffer
-                    "f S" 'save-some-buffers
-                    "f f" 'find-file
-                    "f r" 'recentf-open-files
-                    "f d" 'dired
-                    "f n" 'make-frame-command
-                    "f o" 'find-file-other-window)
-
-                  ;; Buffer-related operations under 'b'
-                  (my-leader-def
-                    "b"  '(:ignore t :which-key "buffer")
-                    "b b" 'switch-to-buffer
-                    "b k" 'kill-buffer
-                    "b K" 'kill-buffer-and-window
-                    "b n" 'next-buffer
-                    "b p" 'previous-buffer
-                    "b d" 'display-buffer
-                    "b r" 'rename-buffer
-                    "b l" 'list-buffers
-                    "b m" 'switch-to-buffer)
-
-                  ;; Window management (SPC w)
-                  (my-leader-def
-                    "w"  '(:ignore t :which-key "window")
-                    "w k" 'windmove-up
-                    "w j" 'windmove-down
-                    "w h" 'windmove-left
-                    "w l" 'windmove-right
-                    "w s" 'split-window-below
-                    "w v" 'split-window-right
-                    "w w" 'other-window
-                    "w d" 'delete-window
-                    "w =" 'balance-windows
-                    "w m" 'delete-other-windows
-                    "w x" 'winner-undo
-                    "w X" 'winner-redo)
-
-                  ;; Search commands (SPC s)
-                  (my-leader-def
-                    "s"  '(:ignore t :which-key "search")
-                    "s f" 'swiper
-                    "s r" 'replace-string
-                    "s p" 'projectile-ag
-                    "s b" 'consult-buffer
-                    "s t" 'consult-theme)
-
-      ;; Keybindings with SPC prefix for eglot commands
-      (my-leader-def
-        :keymaps 'eglot-mode-map
-        "e"  '(:ignore t :which-key "eglot")
-        "ea" 'eglot-code-actions
-        "ef" 'eglot-format
-        "er" 'eglot-rename
-        "ed" 'eldoc-doc-buffer
-        "eh" 'eglot-help-at-point)
+  (straight-use-package 'which-key)
+  (use-package which-key
+    :ensure t
+    :config
+    (which-key-mode)
+    (setq which-key-idle-delay 0.3)
+    )
 
 
-                  ;; Keybindings for Org mode
-                  (my-leader-def
-                    "o"  '(:ignore t :which-key "Org")
-                    "o a" 'org-agenda
-                    "o c" 'org-capture
-                    "o l" 'org-store-link
-                    "o t" 'org-todo
-                    "o s" 'org-schedule
-                    "o d" 'org-deadline
-            "o P" 'org-paste-subtree)
+  ;; File-related operations under 'f'
+  (my-leader-def
+    "f"  '(:ignore t :which-key "file")
+    "f s" 'save-buffer
+    "f S" 'save-some-buffers
+    "f f" 'find-file
+    "f r" 'recentf-open-files
+    "f d" 'dired
+    "f n" 'make-frame-command
+    "f o" 'find-file-other-window)
 
-(with-eval-after-load 'org
-  (general-define-key
-   :keymaps 'org-mode-map
-   "C-<return>" #'org-insert-list-or-heading
-   "C-M-<return>" #'org-insert-subitem-or-subheading))
+  ;; Buffer-related operations under 'b'
+  (my-leader-def
+    "b"  '(:ignore t :which-key "buffer")
+    "b b" 'switch-to-buffer
+    "b k" 'kill-buffer
+    "b K" 'kill-buffer-and-window
+    "b n" 'next-buffer
+    "b p" 'previous-buffer
+    "b d" 'display-buffer
+    "b r" 'rename-buffer
+    "b l" 'list-buffers
+    "b m" 'switch-to-buffer)
 
-(defun org-insert-list-or-heading ()
-  "Insert a list item below the current one if on a list, or insert a heading below if on a heading."
-  (interactive)
-  (end-of-line)  ;; Move to the end of the current line to respect content
-  (newline)      ;; Create a new line below
-  (if (org-in-item-p)  ;; Check if point is on a list item
-      (org-insert-item) ;; Insert list item below
-    (org-insert-heading))) ;; Insert heading below
+  ;; Window management (SPC w)
+  (my-leader-def
+    "w"  '(:ignore t :which-key "window")
+    "w k" 'windmove-up
+    "w j" 'windmove-down
+    "w h" 'windmove-left
+    "w l" 'windmove-right
+    "w s" 'split-window-below
+    "w v" 'split-window-right
+    "w w" 'other-window
+    "w d" 'delete-window
+    "w =" 'balance-windows
+    "w m" 'delete-other-windows
+    "w x" 'winner-undo
+    "w X" 'winner-redo)
 
-(defun org-insert-subitem-or-subheading ()
-  "Insert a sub-item (one level deeper) in a list, or insert a subheading (one level deeper) if on a heading."
-  (interactive)
-  (end-of-line)  ;; Move to the end of the current line to respect content
-  (newline)      ;; Create a new line below
-  (if (org-in-item-p)  ;; Check if point is on a list item
-      (progn
-        (org-insert-item) ;; Insert item
-        (org-indent-item))  ;; Indent it to the next level (subitem)
-    (org-insert-heading))  ;; Insert heading if on a heading
-  (when (org-at-heading-p)  ;; If on a heading, demote to subheading
-    (org-demote-subtree)))
+  ;; Search commands (SPC s)
+  (my-leader-def
+    "s"  '(:ignore t :which-key "search")
+    "s f" 'swiper
+    "s r" 'replace-string
+    "s p" 'projectile-ag
+    "s b" 'consult-buffer
+    "s t" 'consult-theme)
 
-                  ;; Enable recentf for recent file operations
-                  (use-package recentf
-                    :straight t
-                    :init
-                    (recentf-mode 1)
-                    :config
-                    (setq recentf-max-saved-items 100
-                          recentf-auto-cleanup 'never
-                          recentf-exclude '("/tmp/" "/ssh:" "/\\.git/")))
+  ;; Keybindings with SPC prefix for eglot commands
+  (my-leader-def
+    :keymaps 'eglot-mode-map
+    "e"  '(:ignore t :which-key "eglot")
+    "ea" 'eglot-code-actions
+    "ef" 'eglot-format
+    "er" 'eglot-rename
+    "ed" 'eldoc-doc-buffer
+    "eh" 'eglot-help-at-point)
 
-                  (global-set-key (kbd "C-x C-b") 'ibuffer)
-                  (global-set-key (kbd "M-o") 'other-window)
 
-                  (define-key evil-normal-state-map (kbd "u") 'undo-tree-undo)
-                  (define-key evil-normal-state-map (kbd "C-r") 'undo-tree-redo)
+  ;; Keybindings for Org mode
+  (my-leader-def
+    "o"  '(:ignore t :which-key "Org")
+    "o a" 'org-agenda
+    "o c" 'org-capture
+    "o l" 'org-store-link
+    "o t" 'org-todo
+    "o s" 'org-schedule
+    "o d" 'org-deadline
+    "o P" 'org-paste-subtree)
+
+  (with-eval-after-load 'org
+    (general-define-key
+     :keymaps 'org-mode-map
+     "C-<return>" #'org-insert-list-or-heading
+     "C-M-<return>" #'org-insert-subitem-or-subheading))
+
+  (defun org-insert-list-or-heading ()
+    "Insert a list item below the current one if on a list, or insert a heading below if on a heading."
+    (interactive)
+    (end-of-line)  ;; Move to the end of the current line to respect content
+    (newline)      ;; Create a new line below
+    (if (org-in-item-p)  ;; Check if point is on a list item
+        (org-insert-item) ;; Insert list item below
+      (org-insert-heading))) ;; Insert heading below
+
+  (defun org-insert-subitem-or-subheading ()
+    "Insert a sub-item (one level deeper) in a list, or insert a subheading (one level deeper) if on a heading."
+    (interactive)
+    (end-of-line)  ;; Move to the end of the current line to respect content
+    (newline)      ;; Create a new line below
+    (if (org-in-item-p)  ;; Check if point is on a list item
+        (progn
+          (org-insert-item) ;; Insert item
+          (org-indent-item))  ;; Indent it to the next level (subitem)
+      (org-insert-heading))  ;; Insert heading if on a heading
+    (when (org-at-heading-p)  ;; If on a heading, demote to subheading
+      (org-demote-subtree)))
+
+  ;; Enable recentf for recent file operations
+  (use-package recentf
+    :straight t
+    :init
+    (recentf-mode 1)
+    :config
+    (setq recentf-max-saved-items 100
+          recentf-auto-cleanup 'never
+          recentf-exclude '("/tmp/" "/ssh:" "/\\.git/")))
+
+  (global-set-key (kbd "C-x C-b") 'ibuffer)
+  (global-set-key (kbd "M-o") 'other-window)
+
+  (define-key evil-normal-state-map (kbd "u") 'undo-tree-undo)
+  (define-key evil-normal-state-map (kbd "C-r") 'undo-tree-redo)
 #+end_src
 
 * Shell
 #+begin_src emacs-lisp
-(use-package vterm
-  :ensure t
-  :config
-  (defun my-vterm-toggle ()
-    "Open vterm in a split window at the bottom, or focus it if it's already open."
-    (interactive)
-    (let ((vterm-buffer (get-buffer "*vterm*")))  ;; Check if vterm buffer exists
-      (if vterm-buffer
-          (let ((vterm-window (get-buffer-window vterm-buffer)))
-            (if vterm-window
-                (delete-window vterm-window)  ;; Close the existing vterm window
-              (progn
-                (split-window-below)        ;; Split the window horizontally at the bottom
-                (other-window 1)             ;; Move the cursor to the new window
-                (vterm))))                  ;; Open a new vterm in the new window
-        (progn
-          (split-window-below)            ;; Split the window horizontally at the bottom
-          (other-window 1)                ;; Move the cursor to the new window
-          (vterm)))))                     ;; Open a new vterm in the new window
+  (use-package vterm
+    :ensure t
+    :config
+    (defun my-vterm-toggle ()
+      "Open vterm in a split window at the bottom, or focus it if it's already open."
+      (interactive)
+      (let ((vterm-buffer (get-buffer "*vterm*")))  ;; Check if vterm buffer exists
+        (if vterm-buffer
+            (let ((vterm-window (get-buffer-window vterm-buffer)))
+              (if vterm-window
+                  (delete-window vterm-window)  ;; Close the existing vterm window
+                (progn
+                  (split-window-below)        ;; Split the window horizontally at the bottom
+                  (other-window 1)             ;; Move the cursor to the new window
+                  (vterm))))                  ;; Open a new vterm in the new window
+          (progn
+            (split-window-below)            ;; Split the window horizontally at the bottom
+            (other-window 1)                ;; Move the cursor to the new window
+            (vterm)))))                     ;; Open a new vterm in the new window
 
-  (general-define-key
-   :prefix "SPC"
-   :states '(normal)
-   "t v" 'my-vterm-toggle))  ;; Bind to SPC t v
+    (general-define-key
+     :prefix "SPC"
+     :states '(normal)
+     "t v" 'my-vterm-toggle))  ;; Bind to SPC t v
 #+end_src
 
 * Org
 #+begin_src emacs-lisp
-             (use-package org
-      :ensure nil
-      :straight nil
-      :config
-      (setq org-use-sub-superscripts nil
-            org-log-done t
-            org-startup-indented t
-            org-hide-leading-stars t
-            org-pretty-entities t
-            org-directory my-org-dir
-            org-mobile-directory org-directory
-            org-src-fontify-natively t
-            org-src-tab-acts-natively t
-            org-src-window-setup 'current-window
-            org-agenda-start-on-weekday 5
-            org-default-notes-file (concat my-org-dir "/0.Inbox.org")
-            org-special-ctrl-a/e t
-            org-agenda-files
-            (remove (concat my-org-dir "/4.Archives.org")
-                    (append (directory-files-recursively my-org-dir "\\.org$")
-                            (directory-files-recursively "~/Workspace/" "\\.org$")))
-            org-todo-keywords '((sequence "TODO(t)" "IN_PROGRESS(i)" "IN_REVIEW(r)" "|" "DONE(d)")
-                                (sequence "NEXT(n)" "WAITING(w@/)" "DELEGATED(D)" "HOLD(h@/)" "|" "CANCELLED(c@/)"))
-            org-global-properties '(("Effort_ALL" . "0:10 0:15 0:20 0:30 1:00 2:00 3:00 4:00 6:00 8:00"))
-            org-columns-default-format "%50ITEM(Task) %TODO %TAGS %SCHEDULED %DEADLINE %Effort(Estimated Effort){:} %CLOCKSUM"
-            org-archive-location (concat my-org-dir "/4.Archives.org::* From %s")
-            org-refile-targets '((org-agenda-files :maxlevel . 3))
-            org-capture-templates '(("i" "Inbox" entry (file+headline my-org-dir "/0.Inbox.org" "Inbox")
+  (use-package org
+    :ensure nil
+    :straight nil
+    :hook (org-mode . org-indent-mode)
+    :config
+    (setq org-use-sub-superscripts nil
+          org-log-done t
+          org-startup-indented t
+          org-hide-leading-stars t
+          org-pretty-entities t
+          org-directory my-org-dir
+          org-mobile-directory org-directory
+          org-src-fontify-natively t
+          org-src-tab-acts-natively t
+          org-src-window-setup 'current-window
+          org-agenda-start-on-weekday 5
+          org-default-notes-file (concat my-org-dir "/0.Inbox.org")
+          org-special-ctrl-a/e t
+          org-agenda-files
+          (remove (concat my-org-dir "/4.Archives.org")
+                  (append (directory-files-recursively my-org-dir "\\.org$")
+                          (directory-files-recursively "~/Workspace/" "\\.org$")))
+          org-todo-keywords '((sequence "TODO(t)" "IN_PROGRESS(i)" "IN_REVIEW(r)" "|" "DONE(d)")
+                              (sequence "NEXT(n)" "WAITING(w@/)" "DELEGATED(D)" "HOLD(h@/)" "|" "CANCELLED(c@/)"))
+          org-global-properties '(("Effort_ALL" . "0:10 0:15 0:20 0:30 1:00 2:00 3:00 4:00 6:00 8:00"))
+          org-columns-default-format "%50ITEM(Task) %TODO %TAGS %SCHEDULED %DEADLINE %Effort(Estimated Effort){:} %CLOCKSUM"
+          org-archive-location (concat my-org-dir "/4.Archives.org::* From %s")
+          org-refile-targets '((org-agenda-files :maxlevel . 3))
+          org-capture-templates '(("i" "Inbox" entry (file+headline my-org-dir "/0.Inbox.org" "Inbox")
                                    "* %?\n"))
-            org-agenda-window-setup 'current-window))
+          org-agenda-window-setup 'current-window))
 
-
-              (use-package toc-org
-                :ensure t
-                :commands toc-org-enable
-                :init
-                (add-hook 'org-mode-hook 'toc-org-enable))
+  (use-package toc-org
+    :ensure t
+    :commands toc-org-enable
+    :init
+    (add-hook 'org-mode-hook 'toc-org-enable))
 #+end_src
 
 * Projectile
 #+begin_src emacs-lisp
 
-    (use-package project
-  )
+  (use-package project)
 
   ;; Projectile Configuration
   (use-package projectile
     :ensure t
-  :straight t
+    :straight t
     :init
 
     (setq projectile-sort-order 'recentf)
@@ -450,179 +450,197 @@
 * LSP and Programming
 ** Treesit
 #+begin_src emacs-lisp
-        ;; Ensure Tree-sitter integration
-        (use-package treesit
-          :straight (:type built-in) ;; treesit is built into Emacs 29+
-          :init
-          ;; Use Tree-sitter for supported major modes
-          (setq major-mode-remap-alist
-                '((python-mode . python-ts-mode)
-                  (js-mode . js-ts-mode)
-                  (js-mode . typescript-ts-mode)
-                  (css-mode . css-ts-mode)
-                  (html-mode . html-ts-mode)
-                  (json-mode . json-ts-mode)
-                  (bash-mode . bash-ts-mode)
-                  (elixir-mode . elixir-ts-mode)
-                  (yaml-mode . yaml-ts-mode)))
-          :config
-          ;; Function to ensure Tree-sitter parser is installed
-          (defun my/ensure-treesit-parser (lang)
-            "Ensure Tree-sitter parser for LANG is installed."
-            (unless (treesit-language-available-p lang)
-              (treesit-install-language-grammar lang)))
-          ;; Automatically install parsers for listed languages
-          (dolist (lang '(python javascript css html json bash elixir yaml))
-            (my/ensure-treesit-parser lang))
+  ;; Ensure Tree-sitter integration
+  (use-package treesit
+    :straight (:type built-in) ;; treesit is built into Emacs 29+
+    :init
+    ;; Use Tree-sitter for supported major modes
+    (setq major-mode-remap-alist
+          '((python-mode . python-ts-mode)
+            (js-mode . js-ts-mode)
+            (js-mode . typescript-ts-mode)
+            (css-mode . css-ts-mode)
+            (html-mode . html-ts-mode)
+            (json-mode . json-ts-mode)
+            (bash-mode . bash-ts-mode)
+            (elixir-mode . elixir-ts-mode)
+            (yaml-mode . yaml-ts-mode)))
+    :config
+    ;; Function to ensure Tree-sitter parser is installed
+    (defun my/ensure-treesit-parser (lang)
+      "Ensure Tree-sitter parser for LANG is installed."
+      (unless (treesit-language-available-p lang)
+        (treesit-install-language-grammar lang)))
+    ;; Automatically install parsers for listed languages
+    (dolist (lang '(python javascript css html json bash elixir yaml))
+      (my/ensure-treesit-parser lang))
     (add-hook 'js-ts-mode-hook #'treesit-inspect-mode) ;; Optional: debugging treesit parsing
-      (add-hook 'typescript-ts-mode-hook #'treesit-inspect-mode)
-      )
+    (add-hook 'typescript-ts-mode-hook #'treesit-inspect-mode)
+    )
 
-        ;; Enhance syntax highlighting with `font-lock`
-        (use-package font-lock
-          :straight (:type built-in)
-          :config
-          (setq treesit-font-lock-level 4)) ;; Maximum level for detailed syntax highlighting
+  ;; Enhance syntax highlighting with `font-lock`
+  (use-package font-lock
+    :straight (:type built-in)
+    :config
+    (setq treesit-font-lock-level 4)) ;; Maximum level for detailed syntax highlighting
 
-        ;; Ensure `tree-sitter` and `tree-sitter-langs` are installed
-        (use-package tree-sitter
-          :straight t
-          :hook ((prog-mode . global-tree-sitter-mode)
-                 (tree-sitter-after-on . tree-sitter-hl-mode))
-          :config
-          ;; Map major modes to Tree-sitter languages
-          (setq tree-sitter-major-mode-language-alist
-                '((js-mode . javascript)
-                  (jsx-mode . javascript)
-                  (php-mode . php)
-                  (elixir-mode . elixir)
-                  (yaml-mode . yaml))))
+  ;; Ensure `tree-sitter` and `tree-sitter-langs` are installed
+  (use-package tree-sitter
+    :straight t
+    :hook ((prog-mode . global-tree-sitter-mode)
+           (tree-sitter-after-on . tree-sitter-hl-mode))
+    :config
+    ;; Map major modes to Tree-sitter languages
+    (setq tree-sitter-major-mode-language-alist
+          '((js-mode . javascript)
+            (jsx-mode . javascript)
+            (php-mode . php)
+            (elixir-mode . elixir)
+            (yaml-mode . yaml))))
 
-        (use-package tree-sitter-langs
-          :straight t)
+  (use-package tree-sitter-langs
+    :straight t)
 
 #+end_src
 
 ** Eglot
+
 #+begin_src emacs-lisp
-        ;; Ensure Tree-sitter is available
-        (when (and (functionp 'treesit-available-p) (treesit-available-p))
-          (message "Tree-sitter is available"))
+  ;; Ensure Tree-sitter is available
+  (when (and (functionp 'treesit-available-p) (treesit-available-p))
+    (message "Tree-sitter is available"))
 
-                  (use-package eglot
-              :init
-              ;; Reduce events buffer size and exclude eldoc if desired
-              (setq eglot-events-buffer-size 0
-                    eglot-stay-out-of '(eldoc))
-              ;; Configure eglot-server-programs for various languages
-              (setq eglot-server-programs
-                    `((python-ts-mode   . ("pyright-langserver" "--stdio"))
-          (elixir-ts-mode . ("~/.config/emacs/elixir-ls/release/language_server.sh"))
-                      (css-ts-mode      . ("vscode-css-languageserver" "--stdio"))
-                      (html-ts-mode     . ("vscode-html-languageserver" "--stdio"))
-      ((js-ts-mode tsx-ts-mode typescript-ts-mode) . ("typescript-language-server" "--stdio"))
-                      (json-ts-mode     . ("vscode-json-languageserver" "--stdio"))
-                      (go-ts-mode       . ("gopls"))
-                      (yaml-ts-mode     . ("yaml-language-server" "--stdio"))
-                      (php-mode         . ("intelephense" "--stdio"))
-                      (dart-mode        . ("dart" "language-server"))
-                      ))
+  (use-package eglot
+    :init
+    ;; Reduce events buffer size and exclude eldoc if desired
+    (setq eglot-events-buffer-size 0
+          eglot-stay-out-of '(eldoc))
+    ;; Configure eglot-server-programs for various languages
+    (setq eglot-server-programs
+          `((python-ts-mode   . ("pyright-langserver" "--stdio"))
+            (elixir-ts-mode . ("~/.config/emacs/elixir-ls/release/language_server.sh"))
+            (css-ts-mode      . ("vscode-css-languageserver" "--stdio"))
+            (html-ts-mode     . ("vscode-html-languageserver" "--stdio"))
+            ((js-ts-mode tsx-ts-mode typescript-ts-mode) . ("typescript-language-server" "--stdio"))
+            (json-ts-mode     . ("vscode-json-languageserver" "--stdio"))
+            (go-ts-mode       . ("gopls"))
+            (yaml-ts-mode     . ("yaml-language-server" "--stdio"))
+            (php-mode         . ("intelephense" "--stdio"))
+            (dart-mode        . ("dart" "language-server"))
+            ))
 
-              ;; Ensure tree-sitter grammars are installed for languages that support it
-              :hook
-              ((python-ts-mode js-ts-mode tsx-ts-mode typescript-ts-mode css-ts-mode html-ts-mode json-ts-mode
-                                elixir-ts-mode go-ts-mode yaml-ts-mode php-mode dart-mode)
-               . eglot-ensure)
+    ;; Ensure tree-sitter grammars are installed for languages that support it
+    :hook
+    ((python-ts-mode js-ts-mode tsx-ts-mode typescript-ts-mode css-ts-mode html-ts-mode json-ts-mode
+                     elixir-ts-mode go-ts-mode yaml-ts-mode php-mode dart-mode)
+     . eglot-ensure)
 
-              :config
-              ;; Automatically format on save for eglot-managed buffers
-              (add-hook 'eglot-managed-mode-hook
-                        (lambda ()
-                          (add-hook 'before-save-hook #'eglot-format-buffer -10 t)))
-(add-hook 'eglot-managed-mode-hook
-            (lambda ()
-              (add-hook 'flymake-diagnostic-functions #'eglot-flymake-backend nil t))))
+    :config
+    ;; Automatically format on save for eglot-managed buffers
+    (add-hook 'eglot-managed-mode-hook
+              (lambda ()
+                (add-hook 'before-save-hook #'eglot-format-buffer -10 t)))
+    (add-hook 'eglot-managed-mode-hook
+              (lambda ()
+                (add-hook 'flymake-diagnostic-functions #'eglot-flymake-backend nil t))))
+#+end_src
 
-  
-
-
+** Code Block Formatting
+#+begin_src emacs-lisp
+  (defun format-code-blocks ()
+    "Format code blocks in the current buffer."
+    (interactive)
+    (save-excursion
+      (goto-char (point-min))
+      (while (re-search-forward "#\\+begin_src \\(.*\\)" nil t)
+        (let* ((lang (match-string 1)) ;; Capture the language
+               (src-block (org-element-context)))
+          (when (and src-block lang)
+            (goto-char (org-element-property :begin src-block))
+            (org-edit-special) ;; Open the source block in a temp buffer
+            (let ((major-mode-fn (intern (concat lang "-mode"))))
+              (when (fboundp major-mode-fn)
+                ;; Activate the major mode for formatting
+                (funcall major-mode-fn)
+                (indent-region (point-min) (point-max)))) ;; Format code
+            (org-edit-src-exit)))))) ;; Exit the source block
 #+end_src
 ** Completion Framework
 
 #+begin_src emacs-lisp
-;; Corfu configuration for Evil
-(use-package corfu
-  :ensure t
-  :custom
-  (corfu-cycle t)
-  (corfu-auto t)
-  (corfu-auto-delay 0.2)
-  (corfu-auto-prefix 2)
-  (corfu-quit-no-match 'separator)
-  (corfu-preview-current nil)
-  :bind (:map corfu-map
-              ("<tab>" . corfu-next)    ;; Navigate forward
-              ("S-<tab>" . corfu-previous) ;; Navigate backward
-              ("C-j" . corfu-next)     ;; Evil-style downward navigation
-              ("C-k" . corfu-previous)) ;; Evil-style upward navigation)
-  :init
-  (global-corfu-mode))
+  ;; Corfu configuration for Evil
+  (use-package corfu
+    :ensure t
+    :custom
+    (corfu-cycle t)
+    (corfu-auto t)
+    (corfu-auto-delay 0.2)
+    (corfu-auto-prefix 2)
+    (corfu-quit-no-match 'separator)
+    (corfu-preview-current nil)
+    :bind (:map corfu-map
+                ("<tab>" . corfu-next)    ;; Navigate forward
+                ("S-<tab>" . corfu-previous) ;; Navigate backward
+                ("C-j" . corfu-next)     ;; Evil-style downward navigation
+                ("C-k" . corfu-previous)) ;; Evil-style upward navigation)
+    :init
+    (global-corfu-mode))
 #+end_src
 ** Minibuffer Completion
 
 #+begin_src emacs-lisp
-;; Vertico configuration with Evil bindings
-(use-package vertico
-  :ensure t
-  :custom
-  (vertico-cycle t)
-  :bind (:map vertico-map
-              ("C-j" . vertico-next)     ;; Navigate down
-              ("C-k" . vertico-previous) ;; Navigate up
-              ("C-l" . vertico-exit)     ;; Exit completion
-              ("C-h" . backward-kill-word)) ;; Kill word backward
-  :init
-  (vertico-mode))
+  ;; Vertico configuration with Evil bindings
+  (use-package vertico
+    :ensure t
+    :custom
+    (vertico-cycle t)
+    :bind (:map vertico-map
+                ("C-j" . vertico-next)     ;; Navigate down
+                ("C-k" . vertico-previous) ;; Navigate up
+                ("C-l" . vertico-exit)     ;; Exit completion
+                ("C-h" . backward-kill-word)) ;; Kill word backward
+    :init
+    (vertico-mode))
 
 #+end_src
 ** Search and Navigation
 
 #+begin_src emacs-lisp
-;; Consult with Evil-friendly keybindings
-(use-package consult
-  :ensure t
-  :bind
-  (:map evil-normal-state-map
-        ("<leader>f" . consult-find)         ;; Search files
-        ("<leader>b" . consult-buffer)       ;; Switch buffer
-        ("<leader>l" . consult-line)         ;; Search in buffer
-        ("<leader>g" . consult-grep)         ;; Grep search
-        ("<leader>m" . consult-imenu)        ;; Jump to symbol in buffer
-        ("<leader>r" . consult-recent-file)) ;; Open recent files
-  :custom
-  (consult-preview-key 'any)
-  :hook
-  (completion-list-mode . consult-preview-at-point-mode))
+  ;; Consult with Evil-friendly keybindings
+  (use-package consult
+    :ensure t
+    :bind
+    (:map evil-normal-state-map
+          ("<leader>f" . consult-find)         ;; Search files
+          ("<leader>b" . consult-buffer)       ;; Switch buffer
+          ("<leader>l" . consult-line)         ;; Search in buffer
+          ("<leader>g" . consult-grep)         ;; Grep search
+          ("<leader>m" . consult-imenu)        ;; Jump to symbol in buffer
+          ("<leader>r" . consult-recent-file)) ;; Open recent files
+    :custom
+    (consult-preview-key 'any)
+    :hook
+    (completion-list-mode . consult-preview-at-point-mode))
 
 #+end_src
 ** Context-sensitive actions and annotations
 #+begin_src emacs-lisp
-;; Embark with Evil adjustments
-(use-package embark
-  :ensure t
-  :bind
-  (:map evil-normal-state-map
-        ("<leader>." . embark-act)          ;; Contextual action
-        ("<leader>;" . embark-dwim))        ;; Do what I mean
-  :init
-  (setq prefix-help-command #'embark-prefix-help-command))
+  ;; Embark with Evil adjustments
+  (use-package embark
+    :ensure t
+    :bind
+    (:map evil-normal-state-map
+          ("<leader>." . embark-act)          ;; Contextual action
+          ("<leader>;" . embark-dwim))        ;; Do what I mean
+    :init
+    (setq prefix-help-command #'embark-prefix-help-command))
 
-;; Marginalia for annotations
-(use-package marginalia
-  :ensure t
-  :after vertico
-  :init
-  (marginalia-mode))
+  ;; Marginalia for annotations
+  (use-package marginalia
+    :ensure t
+    :after vertico
+    :init
+    (marginalia-mode))
 
 #+end_src
 ** Syntax checking
@@ -649,155 +667,155 @@
                       '(" Flymake" flymake-mode-line-exception flymake-mode-line-counters)))))
 
   (use-package flymake-popon
-  :ensure t
-  :hook (flymake-mode . flymake-popon-mode))
+    :ensure t
+    :hook (flymake-mode . flymake-popon-mode))
 
 #+end_src
 ** Prettier 
 #+begin_src emacs-lisp
-(use-package prettier
-  :ensure t
-  :hook ((js2-mode . prettier-mode)
-         (rjsx-mode . prettier-mode)))
+  (use-package prettier
+    :ensure t
+    :hook ((js2-mode . prettier-mode)
+           (rjsx-mode . prettier-mode)))
 
 #+end_src
 ** Web mode 
 #+begin_src emacs-lisp
-;; Ensure web-mode is installed
-(use-package web-mode
-  :straight t
-  :mode ("\\.html?\\'" "\\.css\\'" "\\.js\\'" "\\.jsx\\'" "\\.ts\\'" "\\.tsx\\'" "\\.php\\'")
-  :hook
-  ((web-mode . eglot-ensure) ;; Ensure eglot LSP support for web-mode
-   (web-mode . emmet-mode)   ;; Enable Emmet mode
-   (web-mode . (lambda ()
-                 ;; Format on save using LSP
-                 (add-hook 'before-save-hook #'lsp-format-buffer nil t))))
-  :config
-  ;; Configure web-mode indentation and settings
-  (setq web-mode-markup-indent-offset 2
-        web-mode-code-indent-offset 2
-        web-mode-css-indent-offset 2
-        web-mode-enable-auto-quoting nil  ;; Disable automatic insertion of quotes
-        web-mode-enable-auto-pairing t   ;; Enable auto-pairing of tags
-        web-mode-enable-current-column-highlight t
-        web-mode-enable-current-element-highlight t)
+  ;; Ensure web-mode is installed
+  (use-package web-mode
+    :straight t
+    :mode ("\\.html?\\'" "\\.css\\'" "\\.js\\'" "\\.jsx\\'" "\\.ts\\'" "\\.tsx\\'" "\\.php\\'")
+    :hook
+    ((web-mode . eglot-ensure) ;; Ensure eglot LSP support for web-mode
+     (web-mode . emmet-mode)   ;; Enable Emmet mode
+     (web-mode . (lambda ()
+                   ;; Format on save using LSP
+                   (add-hook 'before-save-hook #'lsp-format-buffer nil t))))
+    :config
+    ;; Configure web-mode indentation and settings
+    (setq web-mode-markup-indent-offset 2
+          web-mode-code-indent-offset 2
+          web-mode-css-indent-offset 2
+          web-mode-enable-auto-quoting nil  ;; Disable automatic insertion of quotes
+          web-mode-enable-auto-pairing t   ;; Enable auto-pairing of tags
+          web-mode-enable-current-column-highlight t
+          web-mode-enable-current-element-highlight t)
 
-  ;; Add prettify-symbols for web-mode
-  (add-hook 'web-mode-hook
-            (lambda ()
-              (setq prettify-symbols-alist
-                    '((">=" . ?≥)
-                      ("<=" . ?≤)
-                      ("!=" . ?≠)
-                      ("==" . ?⩵)
-                      ("->" . ?→)))
-              (prettify-symbols-mode 1))))
+    ;; Add prettify-symbols for web-mode
+    (add-hook 'web-mode-hook
+              (lambda ()
+                (setq prettify-symbols-alist
+                      '((">=" . ?≥)
+                        ("<=" . ?≤)
+                        ("!=" . ?≠)
+                        ("==" . ?⩵)
+                        ("->" . ?→)))
+                (prettify-symbols-mode 1))))
 
-;; Install and configure emmet-mode
-(use-package emmet-mode
-  :straight t
-  :hook ((web-mode css-mode sgml-mode) . emmet-mode) ;; Enable Emmet in web-mode, css-mode, and sgml-mode
-  :config
-  ;; Optional: Keybindings for Emmet
-  (define-key emmet-mode-keymap (kbd "TAB") 'emmet-expand-line) ;; Bind TAB key to expand Emmet abbreviation
-  (setq emmet-expand-jsx-className? t) ;; Use `className` for JSX instead of `class`
-  (setq emmet-indent-after-expansion nil)) ;; Disable extra indentation after expansion
+  ;; Install and configure emmet-mode
+  (use-package emmet-mode
+    :straight t
+    :hook ((web-mode css-mode sgml-mode) . emmet-mode) ;; Enable Emmet in web-mode, css-mode, and sgml-mode
+    :config
+    ;; Optional: Keybindings for Emmet
+    (define-key emmet-mode-keymap (kbd "TAB") 'emmet-expand-line) ;; Bind TAB key to expand Emmet abbreviation
+    (setq emmet-expand-jsx-className? t) ;; Use `className` for JSX instead of `class`
+    (setq emmet-indent-after-expansion nil)) ;; Disable extra indentation after expansion
 #+end_src
 ** Python
 #+begin_src emacs-lisp
-;; Python Language Configuration with eglot
-(use-package python-mode
-  :straight t
-  :hook
-  ;; Ensure eglot is initialized for python-mode
-  (python-mode . eglot-ensure)
-  :config
-  ;; Optional: Automatically format on save using LSP
-  (add-hook 'eglot-managed-mode-hook
-            (lambda ()
-              (add-hook 'before-save-hook #'eglot-format-buffer -10 t))))
+  ;; Python Language Configuration with eglot
+  (use-package python-mode
+    :straight t
+    :hook
+    ;; Ensure eglot is initialized for python-mode
+    (python-mode . eglot-ensure)
+    :config
+    ;; Optional: Automatically format on save using LSP
+    (add-hook 'eglot-managed-mode-hook
+              (lambda ()
+                (add-hook 'before-save-hook #'eglot-format-buffer -10 t))))
 #+end_src
 ** Elixir
 #+begin_src emacs-lisp
-;; Setup elixir-ts-mode with eglot and prettify-symbols
-(use-package elixir-ts-mode
-  :hook
-  ;; Automatically start eglot for elixir-ts-mode
-  (elixir-ts-mode . eglot-ensure)
+  ;; Setup elixir-ts-mode with eglot and prettify-symbols
+  (use-package elixir-ts-mode
+    :hook
+    ;; Automatically start eglot for elixir-ts-mode
+    (elixir-ts-mode . eglot-ensure)
 
-  ;; Add prettify-symbols for Elixir operators
-  (elixir-ts-mode . (lambda ()
-                      (setq prettify-symbols-alist
-                            (append prettify-symbols-alist
-                                    '((">=" . ?\u2265)   ;; ≥
-                                      ("<=" . ?\u2264)   ;; ≤
-                                      ("!=" . ?\u2260)   ;; ≠
-                                      ("==" . ?\u2A75)   ;; ≵
-                                      ("=~" . ?\u2245)   ;; ≅
-                                      ("<-" . ?\u2190)   ;; ←
-                                      ("->" . ?\u2192)   ;; →
-                                      ("|>" . ?\u25B7)))))) ;; ▶
+    ;; Add prettify-symbols for Elixir operators
+    (elixir-ts-mode . (lambda ()
+                        (setq prettify-symbols-alist
+                              (append prettify-symbols-alist
+                                      '((">=" . ?\u2265)   ;; ≥
+                                        ("<=" . ?\u2264)   ;; ≤
+                                        ("!=" . ?\u2260)   ;; ≠
+                                        ("==" . ?\u2A75)   ;; ≵
+                                        ("=~" . ?\u2245)   ;; ≅
+                                        ("<-" . ?\u2190)   ;; ←
+                                        ("->" . ?\u2192)   ;; →
+                                        ("|>" . ?\u25B7)))))) ;; ▶
 
-  ;; Auto-format Elixir files before saving in eglot-managed buffers
-  (elixir-ts-mode . (lambda ()
-                      (add-hook 'before-save-hook #'eglot-format-buffer -10 t))))
+    ;; Auto-format Elixir files before saving in eglot-managed buffers
+    (elixir-ts-mode . (lambda ()
+                        (add-hook 'before-save-hook #'eglot-format-buffer -10 t))))
 
-;; Optional: Ensure Tree-sitter support for elixir-ts-mode
-(when (fboundp 'treesit-language-available-p)
-  (unless (treesit-language-available-p 'elixir)
-    (treesit-install-language-grammar 'elixir)))
+  ;; Optional: Ensure Tree-sitter support for elixir-ts-mode
+  (when (fboundp 'treesit-language-available-p)
+    (unless (treesit-language-available-p 'elixir)
+      (treesit-install-language-grammar 'elixir)))
 #+end_src
 
 ** Dart
 #+begin_src emacs-lisp
-;; Dart Language Configuration with eglot
-(use-package dart-mode
-  :straight t
-  :hook
-  ;; Ensure eglot is initialized for dart-mode
-  (dart-mode . eglot-ensure)
-  :config
-  ;; Optional: Format on save using eglot
-  (add-hook 'eglot-managed-mode-hook
-            (lambda ()
-              (add-hook 'before-save-hook #'eglot-format-buffer -10 t))))
+  ;; Dart Language Configuration with eglot
+  (use-package dart-mode
+    :straight t
+    :hook
+    ;; Ensure eglot is initialized for dart-mode
+    (dart-mode . eglot-ensure)
+    :config
+    ;; Optional: Format on save using eglot
+    (add-hook 'eglot-managed-mode-hook
+              (lambda ()
+                (add-hook 'before-save-hook #'eglot-format-buffer -10 t))))
 
-;; Install and configure eglot for Dart/Flutter development
-(use-package eglot
-  :straight t
-  :config
-  ;; Add Dart language server to eglot server programs
-  (add-to-list 'eglot-server-programs
-               '(dart-mode . ("dart" "language-server"))))
+  ;; Install and configure eglot for Dart/Flutter development
+  (use-package eglot
+    :straight t
+    :config
+    ;; Add Dart language server to eglot server programs
+    (add-to-list 'eglot-server-programs
+                 '(dart-mode . ("dart" "language-server"))))
 
-;; Optional: Flutter SDK configuration for Dart
-(use-package lsp-dart
-  :straight t
-  :after dart-mode
-  :config
-  ;; Set Flutter SDK path
-  (setq lsp-dart-flutter-sdk-dir "~/development/flutter"))
+  ;; Optional: Flutter SDK configuration for Dart
+  (use-package lsp-dart
+    :straight t
+    :after dart-mode
+    :config
+    ;; Set Flutter SDK path
+    (setq lsp-dart-flutter-sdk-dir "~/development/flutter"))
 
-;; Debugging with DAP Mode (Optional)
-(use-package dap-mode
-  :straight t
-  :after eglot
-  :config
-  (dap-register-debug-template
-   "Flutter :: Debug"
-   (list :type "flutter"
-         :request "launch"
-         :flutterMode "debug"
-         :program (expand-file-name "lib/main.dart" (projectile-project-root)))))
+  ;; Debugging with DAP Mode (Optional)
+  (use-package dap-mode
+    :straight t
+    :after eglot
+    :config
+    (dap-register-debug-template
+     "Flutter :: Debug"
+     (list :type "flutter"
+           :request "launch"
+           :flutterMode "debug"
+           :program (expand-file-name "lib/main.dart" (projectile-project-root)))))
 #+end_src
 
 ** JS
 #+begin_src emacs-lisp
-    ;; Use the new modes for JavaScript, JSX, and TypeScript
-    (use-package typescript-ts-mode
-      :mode "\\.ts\\'"
-      :hook (typescript-ts-mode . eglot-ensure))
+  ;; Use the new modes for JavaScript, JSX, and TypeScript
+  (use-package typescript-ts-mode
+    :mode "\\.ts\\'"
+    :hook (typescript-ts-mode . eglot-ensure))
 
   (add-to-list 'auto-mode-alist '("\\.js\\'" . js-ts-mode))  ;; JavaScript
   (add-to-list 'auto-mode-alist '("\\.jsx\\'" . tsx-ts-mode)) ;; JSX
@@ -805,59 +823,59 @@
   (add-to-list 'auto-mode-alist '("\\.tsx\\'" . tsx-ts-mode)) ;; TSX
 
 
-      ;; ;; JavaScript and TypeScript Configuration with eglot
-      ;; (use-package js2-mode
-      ;;   :ensure t
-      ;;   :hook
-      ;;   ;; Enable eglot for JavaScript and TypeScript files
-      ;;   ((js2-mode . eglot-ensure)
-      ;;    (js2-mode . subword-mode))  ;; Enable subword mode for camelCase movement
-      ;;   :mode ("\\.js\\'" "\\.jsx\\'" "\\.ts\\'" "\\.tsx\\'")  ;; File extensions for JavaScript and React
+  ;; ;; JavaScript and TypeScript Configuration with eglot
+  ;; (use-package js2-mode
+  ;;   :ensure t
+  ;;   :hook
+  ;;   ;; Enable eglot for JavaScript and TypeScript files
+  ;;   ((js2-mode . eglot-ensure)
+  ;;    (js2-mode . subword-mode))  ;; Enable subword mode for camelCase movement
+  ;;   :mode ("\\.js\\'" "\\.jsx\\'" "\\.ts\\'" "\\.tsx\\'")  ;; File extensions for JavaScript and React
 
-      ;;   :config
-      ;;   (setq js2-basic-offset 2)  ;; JavaScript indentation (React style)
-      ;;   ;; Optional: Disable unnecessary warnings for JavaScript files
-      ;;   (add-hook 'js2-mode-hook (lambda () (setq js2-mode-show-strict-warnings nil))))
+  ;;   :config
+  ;;   (setq js2-basic-offset 2)  ;; JavaScript indentation (React style)
+  ;;   ;; Optional: Disable unnecessary warnings for JavaScript files
+  ;;   (add-hook 'js2-mode-hook (lambda () (setq js2-mode-show-strict-warnings nil))))
 
-      ;; ;; React/JSX specific configuration with eglot
-      ;; (use-package rjsx-mode
-      ;;   :ensure t
-      ;;   :mode ("\\.jsx\\'" "\\.tsx\\'")
-      ;;   :hook
-      ;;   ;; Enable eglot in rjsx-mode
-      ;;   ((rjsx-mode . eglot-ensure)
-      ;;    (rjsx-mode . subword-mode))  ;; Enable subword mode for camelCase movement
-      ;;   :config
-      ;;   (setq js2-basic-offset 2)  ;; ReactJS style indentation
-      ;;   ;; Disable unnecessary warnings in rjsx-mode
-      ;;   (add-hook 'rjsx-mode-hook (lambda () (setq js2-mode-show-strict-warnings nil))))
+  ;; ;; React/JSX specific configuration with eglot
+  ;; (use-package rjsx-mode
+  ;;   :ensure t
+  ;;   :mode ("\\.jsx\\'" "\\.tsx\\'")
+  ;;   :hook
+  ;;   ;; Enable eglot in rjsx-mode
+  ;;   ((rjsx-mode . eglot-ensure)
+  ;;    (rjsx-mode . subword-mode))  ;; Enable subword mode for camelCase movement
+  ;;   :config
+  ;;   (setq js2-basic-offset 2)  ;; ReactJS style indentation
+  ;;   ;; Disable unnecessary warnings in rjsx-mode
+  ;;   (add-hook 'rjsx-mode-hook (lambda () (setq js2-mode-show-strict-warnings nil))))
 #+end_src
 
 ** PHP
 #+begin_src emacs-lisp
-(use-package php-mode
-  :ensure t
-  :hook
-  ((php-mode . eglot-ensure)  ;; Enable eglot for PHP files
-   (php-mode . (lambda ()      ;; Set tab width for PHP
-                 (setq tab-width 4))))
-  :config
-  (setq php-mode-coding-style 'psr2)  ;; PSR-2 coding standards
-  ;; Optional: Enable format on save
-  (add-hook 'php-mode-hook
-            (lambda ()
-              (add-hook 'before-save-hook #'eglot-format-buffer nil t))))
+  (use-package php-mode
+    :ensure t
+    :hook
+    ((php-mode . eglot-ensure)  ;; Enable eglot for PHP files
+     (php-mode . (lambda ()      ;; Set tab width for PHP
+                   (setq tab-width 4))))
+    :config
+    (setq php-mode-coding-style 'psr2)  ;; PSR-2 coding standards
+    ;; Optional: Enable format on save
+    (add-hook 'php-mode-hook
+              (lambda ()
+                (add-hook 'before-save-hook #'eglot-format-buffer nil t))))
 #+end_src
 
 ** PO
 #+begin_src emacs-lisp
-(use-package po-mode
-  :ensure t
-  :mode ("\\.po\\'" "\\.pot\\'")
-  :hook (po-mode . flyspell-mode) ; Enable spell checking in po-mode
-  :config
-  (setq po-auto-edit-mode t          ; Automatically enable editing mode
-        po-developer-mode t))        ; Enable developer mode for additional features
+  (use-package po-mode
+    :ensure t
+    :mode ("\\.po\\'" "\\.pot\\'")
+    :hook (po-mode . flyspell-mode) ; Enable spell checking in po-mode
+    :config
+    (setq po-auto-edit-mode t          ; Automatically enable editing mode
+          po-developer-mode t))        ; Enable developer mode for additional features
 
 #+end_src
 
@@ -878,57 +896,56 @@
 * Hydra
 #+begin_src emacs-lisp
 
-    (straight-use-package 'hydra)
-    (use-package hydra
-      :ensure t
-      :config
-      ;; Example hydra for window management
-      (defhydra hydra-window (:color pink :hint nil)
-        "
-      Movement: [_h_] left  [_j_] down  [_k_] up  [_l_] right   Actions: [_v_] split [_x_] delete [_o_] maximize [_b_] balance [_q_] quit
+  (straight-use-package 'hydra)
+  (use-package hydra
+    :ensure t
+    :config
+    ;; Example hydra for window management
+    (defhydra hydra-window (:color pink :hint nil)
       "
-        ("h" windmove-left)
-        ("j" windmove-down)
-        ("k" windmove-up)
-        ("l" windmove-right)
-        ("v" split-window-right)
-        ("x" delete-window)
-        ("o" delete-other-windows)
-        ("b" balance-windows)
-        ("q" nil)))
+    Movement: [_h_] left  [_j_] down  [_k_] up  [_l_] right   Actions: [_v_] split [_x_] delete [_o_] maximize [_b_] balance [_q_] quit
+    "
+      ("h" windmove-left)
+      ("j" windmove-down)
+      ("k" windmove-up)
+      ("l" windmove-right)
+      ("v" split-window-right)
+      ("x" delete-window)
+      ("o" delete-other-windows)
+      ("b" balance-windows)
+      ("q" nil)))
 #+end_src
-
 
 * Magit
 #+begin_src emacs-lisp
-    (straight-use-package 'magit)
-    (use-package magit
-      :ensure t
-      :bind ("C-x g" . magit-status))
-    (my-leader-def
-      "g g" 'magit-status)  ;; Use SPC g for Magit status
+  (straight-use-package 'magit)
+  (use-package magit
+    :ensure t
+    :bind ("C-x g" . magit-status))
+  (my-leader-def
+    "g g" 'magit-status)  ;; Use SPC g for Magit status
 #+end_src
 
 * Dashboard
 #+begin_src emacs-lisp
 
-    (straight-use-package 'dashboard)
-    (use-package dashboard
-      :ensure t
-      :config
-      (setq dashboard-startup-banner 'official
-            dashboard-center-content t
-            dashboard-items '((recents . 5)
-                              (projects . 5)))
-      (dashboard-setup-startup-hook))
+  (straight-use-package 'dashboard)
+  (use-package dashboard
+    :ensure t
+    :config
+    (setq dashboard-startup-banner 'official
+          dashboard-center-content t
+          dashboard-items '((recents . 5)
+                            (projects . 5)))
+    (dashboard-setup-startup-hook))
 #+end_src
 * Rest 
 
 #+begin_src emacs-lisp
 
 
-        ;; Enable LSP logging (optional for debugging)
-        (setq lsp-log-io nil)
+  ;; Enable LSP logging (optional for debugging)
+  (setq lsp-log-io nil)
 
 
 
@@ -936,79 +953,79 @@
 
 
 
-        (straight-use-package 'yasnippet)
-        (use-package yasnippet
-          :ensure t
-      :hook ((php-mode . yas-minor-mode)
-               (js2-mode . yas-minor-mode)
-               (rjsx-mode . yas-minor-mode)
-  (elixir-mode . yas-minor-mode)
-    )
-          :config
-          (yas-global-mode 1))
+  (straight-use-package 'yasnippet)
+  (use-package yasnippet
+    :ensure t
+    :hook ((php-mode . yas-minor-mode)
+           (js2-mode . yas-minor-mode)
+           (rjsx-mode . yas-minor-mode)
+           (elixir-mode . yas-minor-mode)
+           )
+    :config
+    (yas-global-mode 1))
 
 
-        (straight-use-package 'editorconfig)
-        (use-package editorconfig
-          :ensure t
-          :config
-          (editorconfig-mode 1))
+  (straight-use-package 'editorconfig)
+  (use-package editorconfig
+    :ensure t
+    :config
+    (editorconfig-mode 1))
 
-        ;; Non-keybindings general settings
+  ;; Non-keybindings general settings
 
-        (setq select-enable-clipboard t)
-        (setq select-enable-primary t)
-
-
-        (straight-use-package 'treemacs)
-        (straight-use-package 'treemacs-projectile)
-
-        (use-package treemacs
-          :ensure t
-          :bind ("C-x t" . treemacs))
+  (setq select-enable-clipboard t)
+  (setq select-enable-primary t)
 
 
+  (straight-use-package 'treemacs)
+  (straight-use-package 'treemacs-projectile)
 
-        (straight-use-package 'expand-region)
-        (use-package expand-region
-          :ensure t
-          :bind ("C-=" . er/expand-region))
+  (use-package treemacs
+    :ensure t
+    :bind ("C-x t" . treemacs))
 
-        (straight-use-package 'smartparens)
-        (use-package smartparens
-          :ensure t
-          :config
-          (smartparens-global-mode t))
 
-        (use-package undo-tree
-          :straight t
-          :init
-          ;; Set the directory for storing undo history files.
-          (setq undo-tree-history-directory-alist
-                '(("." . "~/.config/emacs/tmp/undo-tree")))
 
-          ;; Enable auto-saving of undo history for all buffers.
-          (setq undo-tree-auto-save-history t)
+  (straight-use-package 'expand-region)
+  (use-package expand-region
+    :ensure t
+    :bind ("C-=" . er/expand-region))
 
-          ;; Show timestamps and diffs in the undo tree visualizer.
-          (setq undo-tree-visualizer-timestamps t
-                undo-tree-visualizer-diff t)
+  (straight-use-package 'smartparens)
+  (use-package smartparens
+    :ensure t
+    :config
+    (smartparens-global-mode t))
 
-          ;; Limit undo history size for performance (optional).
-          (setq undo-tree-history-limit 500
-                undo-tree-strong-limit 1000
-                undo-tree-outer-limit 1000000)
+  (use-package undo-tree
+    :straight t
+    :init
+    ;; Set the directory for storing undo history files.
+    (setq undo-tree-history-directory-alist
+          '(("." . "~/.config/emacs/tmp/undo-tree")))
 
-          :config
-          ;; Enable global undo tree mode.
-          (global-undo-tree-mode 1)
+    ;; Enable auto-saving of undo history for all buffers.
+    (setq undo-tree-auto-save-history t)
 
-          ;; Set a custom keybinding for undo tree visualization.
-          (global-set-key (kbd "C-x u") 'undo-tree-visualize)
+    ;; Show timestamps and diffs in the undo tree visualizer.
+    (setq undo-tree-visualizer-timestamps t
+          undo-tree-visualizer-diff t)
 
-          ;; Customize the visualizer mode for ease of use.
-          (add-hook 'undo-tree-visualizer-mode-hook
-                    (lambda ()
-                      (define-key undo-tree-visualizer-mode-map (kbd "q") 'quit-window))))
+    ;; Limit undo history size for performance (optional).
+    (setq undo-tree-history-limit 500
+          undo-tree-strong-limit 1000
+          undo-tree-outer-limit 1000000)
+
+    :config
+    ;; Enable global undo tree mode.
+    (global-undo-tree-mode 1)
+
+    ;; Set a custom keybinding for undo tree visualization.
+    (global-set-key (kbd "C-x u") 'undo-tree-visualize)
+
+    ;; Customize the visualizer mode for ease of use.
+    (add-hook 'undo-tree-visualizer-mode-hook
+              (lambda ()
+                (define-key undo-tree-visualizer-mode-map (kbd "q") 'quit-window))))
 
 #+end_src
