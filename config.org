@@ -9,6 +9,7 @@
 - [[#user-interface-and-appearance][User Interface and Appearance]]
 - [[#themes-and-fonts][Themes and Fonts]]
 - [[#keybindings][Keybindings]]
+- [[#dictionary][Dictionary]]
 - [[#shell][Shell]]
 - [[#org][Org]]
 - [[#projectile][Projectile]]
@@ -117,6 +118,13 @@
                     eshell-mode-hook
                     term-mode-hook))
       (add-hook mode (lambda () (display-line-numbers-mode 0))))
+
+    ;; Enable flyspell for text modes
+    (add-hook 'text-mode-hook 'flyspell-mode)
+
+    ;; Enable flyspell for programming comments and strings
+    (add-hook 'prog-mode-hook 'flyspell-prog-mode)
+
     :custom
     ;; Should use:
     ;; (mapc #'treesit-install-language-grammar (mapcar #'car treesit-language-source-alist))
@@ -202,6 +210,7 @@
 #+end_src
 
 * Keybindings
+
 #+begin_src emacs-lisp
   ;; Core Keybindings Configuration
 
@@ -339,8 +348,24 @@
 
   (define-key evil-normal-state-map (kbd "u") 'undo-tree-undo)
   (define-key evil-normal-state-map (kbd "C-r") 'undo-tree-redo)
+
+  ;; Flyspell
+  ;; Correct the word at point
+  (global-set-key (kbd "C-;") 'flyspell-auto-correct-word)
+
+  ;; Navigate to the next misspelled word
+  (global-set-key (kbd "C-c n") 'flyspell-goto-next-error)
 #+end_src
 
+* Dictionary
+#+begin_src emacs-lisp
+  (use-package dictionary
+    :ensure t
+    :bind (("C-c d" . dictionary-search)
+           ("C-c D" . dictionary-lookup-definition))
+    :config
+    (setq dictionary-server "localhost")) ;; Use the local dictionary server
+#+end_src
 * Shell
 #+begin_src emacs-lisp
   (use-package vterm

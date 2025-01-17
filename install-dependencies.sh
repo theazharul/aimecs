@@ -30,5 +30,11 @@ mix deps.get
 echo "Running mix elixir_ls.release2..."
 mix elixir_ls.release2
 
+# Dictionary
+sudo apt install dictd dict-gcide
+sudo systemctl start dictd
+sudo systemctl enable dictd
+
+
 # End of the script
 echo "All dependencies installed successfully!"
