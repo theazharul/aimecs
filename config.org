@@ -206,7 +206,7 @@
   (unless (member "Source Code Pro" (font-family-list))
     (my/load-source-code-pro-font))
 
-  (set-face-attribute 'default nil :font "Source Code Pro" :height 130)
+  (set-face-attribute 'default nil :font "Source Code Pro" :height 150)
 #+end_src
 
 * Keybindings
