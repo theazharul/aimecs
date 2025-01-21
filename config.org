@@ -807,33 +807,6 @@
               (lambda ()
                 (add-hook 'before-save-hook #'eglot-format-buffer -10 t))))
 
-  ;; Install and configure eglot for Dart/Flutter development
-  (use-package eglot
-    :straight t
-    :config
-    ;; Add Dart language server to eglot server programs
-    (add-to-list 'eglot-server-programs
-                 '(dart-mode . ("dart" "language-server"))))
-
-  ;; Optional: Flutter SDK configuration for Dart
-  (use-package lsp-dart
-    :straight t
-    :after dart-mode
-    :config
-    ;; Set Flutter SDK path
-    (setq lsp-dart-flutter-sdk-dir "~/development/flutter"))
-
-  ;; Debugging with DAP Mode (Optional)
-  (use-package dap-mode
-    :straight t
-    :after eglot
-    :config
-    (dap-register-debug-template
-     "Flutter :: Debug"
-     (list :type "flutter"
-           :request "launch"
-           :flutterMode "debug"
-           :program (expand-file-name "lib/main.dart" (projectile-project-root)))))
 #+end_src
 
 ** JS
