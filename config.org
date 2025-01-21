@@ -24,6 +24,7 @@
   - [[#syntax-checking][Syntax checking]]
   - [[#prettier][Prettier]]
   - [[#web-mode][Web mode]]
+  - [[#nix-mode][Nix Mode]]
   - [[#python][Python]]
   - [[#elixir][Elixir]]
   - [[#dart][Dart]]
@@ -706,6 +707,7 @@
 
 #+end_src
 ** Web mode 
+
 #+begin_src emacs-lisp
   ;; Ensure web-mode is installed
   (use-package web-mode
@@ -747,6 +749,12 @@
     (define-key emmet-mode-keymap (kbd "TAB") 'emmet-expand-line) ;; Bind TAB key to expand Emmet abbreviation
     (setq emmet-expand-jsx-className? t) ;; Use `className` for JSX instead of `class`
     (setq emmet-indent-after-expansion nil)) ;; Disable extra indentation after expansion
+#+end_src
+** Nix Mode
+#+begin_src emacs-lisp
+  (use-package nix-mode
+    :ensure t
+    :mode "\\.nix\\'")
 #+end_src
 ** Python
 #+begin_src emacs-lisp
