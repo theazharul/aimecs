@@ -338,6 +338,7 @@
   (use-package vterm
     :ensure t
     :config
+    (setq vterm-shell "zsh")
     (defun my-vterm-toggle ()
       "Open vterm in a split window at the bottom, or focus it if it's already open."
       (interactive)
@@ -661,9 +662,9 @@
                 (setq flymake-mode-line-format
                       '(" Flymake" flymake-mode-line-exception flymake-mode-line-counters)))))
 
-  (use-package flymake-popon
-    :ensure t
-    :hook (flymake-mode . flymake-popon-mode))
+  ;; (use-package flymake-popon
+  ;;   :ensure t
+  ;;   :hook (flymake-mode . flymake-popon-mode))
 
 #+end_src
 ** Prettier 
