@@ -76,14 +76,14 @@
     (evil-collection-init))
 
   (use-package evil-commentary
-    :straight t
+    ;; :straight t
     :after evil
     :config
     (evil-commentary-mode))
 
   (use-package evil-mc
-    :ensure t
-    :straight t
+    ;; :ensure t
+    ;; :straight t
     :after evil
     :config
     ;; Enable evil-mc globally
@@ -148,17 +148,17 @@
   (scroll-bar-mode -1)
   (setq inhibit-startup-screen t)
 
-  (straight-use-package 'all-the-icons)
-  (use-package all-the-icons :ensure t)
+  ;;(straight-use-package 'all-the-icons)
+  (use-package all-the-icons)
 
   (straight-use-package 'rainbow-delimiters)
   (use-package rainbow-delimiters
     :ensure t
     :hook (prog-mode . rainbow-delimiters-mode))
 
-  (straight-use-package 'highlight-indent-guides)
+  ;;(straight-use-package 'highlight-indent-guides)
   (use-package highlight-indent-guides
-    :ensure t
+    ;; :ensure t
     :hook (prog-mode . highlight-indent-guides-mode)
     :config
     (setq highlight-indent-guides-method 'character))
@@ -166,9 +166,9 @@
 
 * Themes and Fonts
 #+begin_src emacs-lisp
-  (straight-use-package 'doom-themes)
+  ;; (straight-use-package 'doom-themes)
   (use-package doom-themes
-    :ensure t
+    ;; :ensure t
     :config
     (load-theme 'doom-gruvbox t))
 
@@ -182,7 +182,6 @@
   ;; Core Keybindings Configuration
 
   (use-package general
-    :ensure t
     :config
     ;; Create a leader key definer with SPC as the prefix in Evil modes
     (general-create-definer my-leader-def
@@ -303,6 +302,7 @@
   ;; Enable recentf for recent file operations
   (use-package recentf
     :straight t
+  :ensure t
     :init
     (recentf-mode 1)
     :config
@@ -336,7 +336,7 @@
 * Shell
 #+begin_src emacs-lisp
   (use-package vterm
-    :ensure t
+    ;; :ensure t
     :config
     (setq vterm-shell "zsh")
     (defun my-vterm-toggle ()
@@ -412,8 +412,8 @@
 
   ;; Projectile Configuration
   (use-package projectile
-    :ensure t
-    :straight t
+    ;; :ensure t
+    ;; :straight t
     :init
 
     (setq projectile-sort-order 'recentf)
@@ -445,56 +445,57 @@
 * LSP and Programming
 ** Treesit
 #+begin_src emacs-lisp
-  ;; Ensure Tree-sitter integration
-  (use-package treesit
-    :straight (:type built-in) ;; treesit is built into Emacs 29+
-    :init
-    ;; Use Tree-sitter for supported major modes
-    (setq major-mode-remap-alist
-          '((python-mode . python-ts-mode)
-            (js-mode . js-ts-mode)
-            (js-mode . typescript-ts-mode)
-            (css-mode . css-ts-mode)
-            (html-mode . html-ts-mode)
-            (json-mode . json-ts-mode)
-            (bash-mode . bash-ts-mode)
-            (elixir-mode . elixir-ts-mode)
-            (yaml-mode . yaml-ts-mode)))
-    :config
-    ;; Function to ensure Tree-sitter parser is installed
-    (defun my/ensure-treesit-parser (lang)
-      "Ensure Tree-sitter parser for LANG is installed."
-      (unless (treesit-language-available-p lang)
-        (treesit-install-language-grammar lang)))
-    ;; Automatically install parsers for listed languages
-    (dolist (lang '(python javascript css html json bash elixir yaml))
-      (my/ensure-treesit-parser lang))
-    (add-hook 'js-ts-mode-hook #'treesit-inspect-mode) ;; Optional: debugging treesit parsing
-    (add-hook 'typescript-ts-mode-hook #'treesit-inspect-mode)
-    )
+    ;; Ensure Tree-sitter integration
+    (use-package treesit
+      :straight (:type built-in) ;; treesit is built into Emacs 29+
+      :init
+      ;; Use Tree-sitter for supported major modes
+      (setq major-mode-remap-alist
+            '((python-mode . python-ts-mode)
+              (js-mode . js-ts-mode)
+              (js-mode . typescript-ts-mode)
+              (css-mode . css-ts-mode)
+              (html-mode . html-ts-mode)
+              (json-mode . json-ts-mode)
+              (bash-mode . bash-ts-mode)
+              (elixir-mode . elixir-ts-mode)
+              (yaml-mode . yaml-ts-mode)))
+      :config
+      ;; Function to ensure Tree-sitter parser is installed
+      (defun my/ensure-treesit-parser (lang)
+        "Ensure Tree-sitter parser for LANG is installed."
+        (unless (treesit-language-available-p lang)
+          (treesit-install-language-grammar lang)))
+      ;; Automatically install parsers for listed languages
+      (dolist (lang '(python javascript css html json bash elixir yaml))
+        (my/ensure-treesit-parser lang))
+      (add-hook 'js-ts-mode-hook #'treesit-inspect-mode) ;; Optional: debugging treesit parsing
+      (add-hook 'typescript-ts-mode-hook #'treesit-inspect-mode)
+      )
 
-  ;; Enhance syntax highlighting with `font-lock`
-  (use-package font-lock
-    :straight (:type built-in)
-    :config
-    (setq treesit-font-lock-level 4)) ;; Maximum level for detailed syntax highlighting
+    ;; Enhance syntax highlighting with `font-lock`
+    (use-package font-lock
+      :straight (:type built-in)
+      :config
+      (setq treesit-font-lock-level 4)) ;; Maximum level for detailed syntax highlighting
 
-  ;; Ensure `tree-sitter` and `tree-sitter-langs` are installed
-  (use-package tree-sitter
-    :straight t
-    :hook ((prog-mode . global-tree-sitter-mode)
-           (tree-sitter-after-on . tree-sitter-hl-mode))
-    :config
-    ;; Map major modes to Tree-sitter languages
-    (setq tree-sitter-major-mode-language-alist
-          '((js-mode . javascript)
-            (jsx-mode . javascript)
-            (php-mode . php)
-            (elixir-mode . elixir)
-            (yaml-mode . yaml))))
+    ;; Ensure `tree-sitter` and `tree-sitter-langs` are installed
+    (use-package tree-sitter
+      ;; :straight t
+      :hook ((prog-mode . global-tree-sitter-mode)
+             (tree-sitter-after-on . tree-sitter-hl-mode))
+      :config
+      ;; Map major modes to Tree-sitter languages
+      (setq tree-sitter-major-mode-language-alist
+            '((js-mode . javascript)
+              (jsx-mode . javascript)
+              (php-mode . php)
+              (elixir-mode . elixir)
+              (yaml-mode . yaml))))
 
-  (use-package tree-sitter-langs
-    :straight t)
+    (use-package tree-sitter-langs
+      ;; :straight t
+  )
 
 #+end_src
 
@@ -566,6 +567,7 @@
 #+begin_src emacs-lisp
   ;; Corfu configuration for Evil
   (use-package corfu
+  :straight t
     :ensure t
     :custom
     (corfu-cycle t)
@@ -587,6 +589,7 @@
 #+begin_src emacs-lisp
   ;; Vertico configuration with Evil bindings
   (use-package vertico
+  :straight t
     :ensure t
     :custom
     (vertico-cycle t)
@@ -604,7 +607,7 @@
 #+begin_src emacs-lisp
   ;; Consult with Evil-friendly keybindings
   (use-package consult
-    :ensure t
+    ;; :ensure t
     :bind
     (:map evil-normal-state-map
           ("<leader>f" . consult-find)         ;; Search files
@@ -623,7 +626,7 @@
 #+begin_src emacs-lisp
   ;; Embark with Evil adjustments
   (use-package embark
-    :ensure t
+    ;; :ensure t
     :bind
     (:map evil-normal-state-map
           ("<leader>." . embark-act)          ;; Contextual action
@@ -633,6 +636,7 @@
 
   ;; Marginalia for annotations
   (use-package marginalia
+  :straight t
     :ensure t
     :after vertico
     :init
@@ -662,15 +666,14 @@
                 (setq flymake-mode-line-format
                       '(" Flymake" flymake-mode-line-exception flymake-mode-line-counters)))))
 
-  ;; (use-package flymake-popon
-  ;;   :ensure t
-  ;;   :hook (flymake-mode . flymake-popon-mode))
+  (use-package flymake-popon
+    :hook (flymake-mode . flymake-popon-mode))
 
 #+end_src
 ** Prettier 
 #+begin_src emacs-lisp
   (use-package prettier
-    :ensure t
+    ;; :ensure t
     :hook ((js2-mode . prettier-mode)
            (rjsx-mode . prettier-mode)))
 
@@ -680,7 +683,7 @@
 #+begin_src emacs-lisp
   ;; Ensure web-mode is installed
   (use-package web-mode
-    :straight t
+    ;; :straight t
     :mode ("\\.html?\\'" "\\.css\\'" "\\.js\\'" "\\.jsx\\'" "\\.ts\\'" "\\.tsx\\'" "\\.php\\'")
     :hook
     ((web-mode . eglot-ensure) ;; Ensure eglot LSP support for web-mode
@@ -711,7 +714,7 @@
 
   ;; Install and configure emmet-mode
   (use-package emmet-mode
-    :straight t
+    ;; :straight t
     :hook ((web-mode css-mode sgml-mode) . emmet-mode) ;; Enable Emmet in web-mode, css-mode, and sgml-mode
     :config
     ;; Optional: Keybindings for Emmet
@@ -722,14 +725,14 @@
 ** Nix Mode
 #+begin_src emacs-lisp
   (use-package nix-mode
-    :ensure t
+    ;; :ensure t
     :mode "\\.nix\\'")
 #+end_src
 ** Python
 #+begin_src emacs-lisp
   ;; Python Language Configuration with eglot
   (use-package python-mode
-    :straight t
+    ;; :straight t
     :hook
     ;; Ensure eglot is initialized for python-mode
     (python-mode . eglot-ensure)
@@ -846,7 +849,7 @@
 ** PO
 #+begin_src emacs-lisp
   (use-package po-mode
-    :ensure t
+    ;; :ensure t
     :mode ("\\.po\\'" "\\.pot\\'")
     :hook (po-mode . flyspell-mode) ; Enable spell checking in po-mode
     :config
@@ -894,9 +897,7 @@
 
 * Magit
 #+begin_src emacs-lisp
-  (straight-use-package 'magit)
   (use-package magit
-    :ensure t
     :bind ("C-x g" . magit-status))
   (my-leader-def
     "g g" 'magit-status)  ;; Use SPC g for Magit status
@@ -905,9 +906,9 @@
 * Dashboard
 #+begin_src emacs-lisp
 
-  (straight-use-package 'dashboard)
+  ;; (straight-use-package 'dashboard)
   (use-package dashboard
-    :ensure t
+    ;; :ensure t
     :config
     (setq dashboard-startup-banner 'official
           dashboard-center-content t
@@ -929,9 +930,7 @@
 
 
 
-  (straight-use-package 'yasnippet)
   (use-package yasnippet
-    :ensure t
     :hook ((php-mode . yas-minor-mode)
            (js2-mode . yas-minor-mode)
            (rjsx-mode . yas-minor-mode)
@@ -953,11 +952,11 @@
   (setq select-enable-primary t)
 
 
-  (straight-use-package 'treemacs)
-  (straight-use-package 'treemacs-projectile)
+  ;; (straight-use-package 'treemacs)
+  ;; (straight-use-package 'treemacs-projectile)
 
   (use-package treemacs
-    :ensure t
+    ;; :ensure t
     :bind ("C-x t" . treemacs))
 
 
