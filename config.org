@@ -39,22 +39,30 @@
 
 * Initialization and Setup
 #+begin_src emacs-lisp
-  ;; Bootstrap straight.el
-  (setq bootstrap-version 6)
-  (let ((bootstrap-file (expand-file-name "straight/repos/straight.el/bootstrap.el" user-emacs-directory))
-        (bootstrap-url "https://raw.githubusercontent.com/radian-software/straight.el/develop/install.el"))
-    (unless (file-exists-p bootstrap-file)
-      (with-current-buffer
-          (url-retrieve-synchronously bootstrap-url 'silent 'inhibit-cookies)
-        (goto-char (point-max))
-        (eval-print-last-sexp)))
-    (load bootstrap-file nil 'nomessage))
+  ;; Use SSH and shallow clones for faster cloning
+(setq straight-vc-git-default-protocol 'ssh)
+(setq straight-vc-git-default-clone-depth 1)
+(setq straight-repository-branch "develop")
 
-  ;; Use straight.el by default for all packages
-  ;; (setq straight-use-package-by-default t)
+;; Bootstrap straight.el
+(setq bootstrap-version 6)
+(let ((bootstrap-file
+       (expand-file-name "straight/repos/straight.el/bootstrap.el" user-emacs-directory))
+      (bootstrap-url
+       "https://raw.githubusercontent.com/radian-software/straight.el/develop/install.el")) ;; still HTTPS, for install
+  (unless (file-exists-p bootstrap-file)
+    (with-current-buffer
+        (url-retrieve-synchronously bootstrap-url 'silent 'inhibit-cookies)
+      (goto-char (point-max))
+      (eval-print-last-sexp)))
+  (load bootstrap-file nil 'nomessage))
 
-  ;; Ensure essential packages
-  ;; (straight-use-package 'use-package)  ;; Ensure `use-package` is installed
+;; Ensure use-package is installed and integrated with straight.el
+(straight-use-package 'use-package)
+
+;; (Optional) Always use straight.el with use-package
+(setq straight-use-package-by-default t)
+
 #+end_src
 
 * Evil
