@@ -505,39 +505,40 @@
   (when (and (functionp 'treesit-available-p) (treesit-available-p))
     (message "Tree-sitter is available"))
 
-  (use-package eglot
-    :init
-    ;; Reduce events buffer size and exclude eldoc if desired
-    (setq eglot-events-buffer-size 0
-          eglot-stay-out-of '(eldoc))
-    ;; Configure eglot-server-programs for various languages
-    (setq eglot-server-programs
-          `((python-ts-mode   . ("pyright-langserver" "--stdio"))
-            (elixir-ts-mode . ("elixir-ls"))
-            (css-ts-mode      . ("vscode-css-languageserver" "--stdio"))
-            (html-ts-mode     . ("vscode-html-languageserver" "--stdio"))
-            ((js-ts-mode tsx-ts-mode typescript-ts-mode) . ("typescript-language-server" "--stdio"))
-            (json-ts-mode     . ("vscode-json-languageserver" "--stdio"))
-            (go-ts-mode       . ("gopls"))
-            (yaml-ts-mode     . ("yaml-language-server" "--stdio"))
-            (php-mode         . ("intelephense" "--stdio"))
-            (dart-mode        . ("dart" "language-server"))
-            ))
+(use-package eglot
+  :init
+  (setq eglot-events-buffer-size 0
+        eglot-stay-out-of '(eldoc))
 
-    ;; Ensure tree-sitter grammars are installed for languages that support it
-    :hook
-    ((python-ts-mode js-ts-mode tsx-ts-mode typescript-ts-mode css-ts-mode html-ts-mode json-ts-mode
-                     elixir-ts-mode go-ts-mode yaml-ts-mode php-mode dart-mode)
-     . eglot-ensure)
+  ;; Configure eglot-server-programs
+  (setq eglot-server-programs
+        '((python-ts-mode   . ("pyright-langserver" "--stdio"))
+          (elixir-ts-mode    . ("elixir-ls" "--stdio"))
+          (css-ts-mode       . ("vscode-css-languageserver" "--stdio"))
+          (html-ts-mode      . ("vscode-html-languageserver" "--stdio"))
+          ((js-ts-mode tsx-ts-mode typescript-ts-mode) . ("typescript-language-server" "--stdio"))
+          (json-ts-mode      . ("vscode-json-languageserver" "--stdio"))
+          (go-ts-mode        . ("gopls"))
+          (yaml-ts-mode      . ("yaml-language-server" "--stdio"))
+          (php-mode          . ("intelephense" "--stdio"))
+          (dart-mode         . ("dart" "language-server"))))
 
-    :config
-    ;; Automatically format on save for eglot-managed buffers
-    (add-hook 'eglot-managed-mode-hook
-              (lambda ()
-                (add-hook 'before-save-hook #'eglot-format-buffer -10 t)))
-    (add-hook 'eglot-managed-mode-hook
-              (lambda ()
-                (add-hook 'flymake-diagnostic-functions #'eglot-flymake-backend nil t))))
+  :hook
+  ((python-ts-mode js-ts-mode tsx-ts-mode typescript-ts-mode css-ts-mode html-ts-mode json-ts-mode
+                    elixir-ts-mode go-ts-mode yaml-ts-mode php-mode dart-mode)
+   . eglot-ensure)
+
+  :config
+  ;; Format on save only for eglot-managed Elixir buffers
+  (add-hook 'eglot-managed-mode-hook
+            (lambda ()
+              (when (derived-mode-p 'elixir-ts-mode)
+                (add-hook 'before-save-hook #'eglot-format-buffer -10 t))))
+
+  ;; Integrate flymake diagnostics into eglot
+  (add-hook 'eglot-managed-mode-hook
+            (lambda ()
+              (add-hook 'flymake-diagnostic-functions #'eglot-flymake-backend nil t))))
 #+end_src
 
 ** Code Block Formatting
@@ -745,31 +746,27 @@
 #+begin_src emacs-lisp
 (use-package elixir-ts-mode
   :hook
-  ;; Automatically start eglot for elixir-ts-mode
   (elixir-ts-mode . eglot-ensure)
-  
-  ;; Enable prettify-symbols-mode with Elixir-specific symbols
-  (elixir-ts-mode . (lambda ()
-                      (setq-local prettify-symbols-alist
-                                  (append prettify-symbols-alist
-                                          '((">=" . ?\u2265)   ;; ≥
-                                            ("<=" . ?\u2264)   ;; ≤
-                                            ("!=" . ?\u2260)   ;; ≠
-                                            ("==" . ?\u2A75)   ;; ≵
-                                            ("=~" . ?\u2245)   ;; ≅
-                                            ("<-" . ?\u2190)   ;; ←
-                                            ("->" . ?\u2192)   ;; →
-                                            ("|>" . ?\u25B7)))) ;; ▶
-                      (prettify-symbols-mode 1)))
+  (elixir-ts-mode . prettify-symbols-mode)
 
-  ;; Auto-format Elixir files before saving in eglot-managed buffers
-  (elixir-ts-mode . (lambda ()
-                      (add-hook 'before-save-hook #'eglot-format-buffer -10 t))))
+  :init
+  ;; Ensure Tree-sitter support for Elixir
+  (when (and (fboundp 'treesit-language-available-p)
+             (not (treesit-language-available-p 'elixir)))
+    (treesit-install-language-grammar 'elixir))
 
-;; Ensure Tree-sitter support for Elixir
-(when (and (fboundp 'treesit-language-available-p)
-           (not (treesit-language-available-p 'elixir)))
-  (treesit-install-language-grammar 'elixir))
+  :config
+  ;; Set prettify symbols for Elixir
+  (setq prettify-symbols-alist
+        '((">=" . ?\u2265)   ;; ≥
+          ("<=" . ?\u2264)   ;; ≤
+          ("!=" . ?\u2260)   ;; ≠
+          ("==" . ?\u2A75)   ;; ≵
+          ("=~" . ?\u2245)   ;; ≅
+          ("<-" . ?\u2190)   ;; ←
+          ("->" . ?\u2192)   ;; →
+          ("|>" . ?\u25B7))) ;; ▶
+  (prettify-symbols-mode 1))
 #+end_src
 
 ** Dart
