@@ -3,6 +3,38 @@
 #+OPTIONS: toc:2
 
 * TABLE OF CONTENT                                                      :toc:
+- [[#initialization-and-setup][Initialization and Setup]]
+- [[#evil][Evil]]
+- [[#basic-configuration][Basic Configuration]]
+- [[#user-interface-and-appearance][User Interface and Appearance]]
+- [[#themes-and-fonts][Themes and Fonts]]
+- [[#keybindings][Keybindings]]
+- [[#dictionary][Dictionary]]
+- [[#shell][Shell]]
+- [[#org][Org]]
+- [[#projectile][Projectile]]
+- [[#lsp-and-programming][LSP and Programming]]
+  - [[#treesit][Treesit]]
+  - [[#eglot][Eglot]]
+  - [[#code-block-formatting][Code Block Formatting]]
+  - [[#completion-framework][Completion Framework]]
+  - [[#minibuffer-completion][Minibuffer Completion]]
+  - [[#search-and-navigation][Search and Navigation]]
+  - [[#context-sensitive-actions-and-annotations][Context-sensitive actions and annotations]]
+  - [[#syntax-checking][Syntax checking]]
+  - [[#prettier][Prettier]]
+  - [[#web-mode][Web mode]]
+  - [[#python][Python]]
+  - [[#elixir][Elixir]]
+  - [[#dart][Dart]]
+  - [[#js][JS]]
+  - [[#php][PHP]]
+  - [[#po][PO]]
+- [[#pdf][Pdf]]
+- [[#hydra][Hydra]]
+- [[#magit][Magit]]
+- [[#dashboard][Dashboard]]
+- [[#rest][Rest]]
 
 * Initialization and Setup
 #+begin_src emacs-lisp
@@ -69,31 +101,35 @@
 
 * Basic Configuration
 #+begin_src emacs-lisp
-(use-package emacs
-  :init
-  ;; Set backup and autosave directories
-  (setq backup-directory-alist `(("." . "~/.config/emacs/tmp/backups"))
-        auto-save-file-name-transforms `((".*" "~/.config/emacs/tmp/auto-save/" t))
-        create-lockfiles nil)
+  (use-package emacs
+    :init
+    ;; Set backup and autosave directories
+    (setq backup-directory-alist `(("." . "~/.config/emacs/tmp/backups"))
+          auto-save-file-name-transforms `((".*" "~/.config/emacs/tmp/auto-save/" t))
+          create-lockfiles nil)
 
+    :config
+    ;; Ensure temporary directories exist
+    (mapc (lambda (dir)
+            (unless (file-exists-p dir)
+              (make-directory dir t)))
+          '("~/.config/emacs/tmp/backups"
+            "~/.config/emacs/tmp/auto-save"
+            "~/.config/emacs/tmp/undo-tree"))
+
+    ;; Display enhancements
+    (setq display-line-numbers-type t)
+    (global-display-line-numbers-mode 1)
+    (global-visual-line-mode 1)
+    (global-hl-line-mode 1)
+
+    ;; Disable line numbers in selected modes
+    (dolist (hook '(org-mode-hook eshell-mode-hook term-mode-hook))
+      (add-hook hook (lambda () (display-line-numbers-mode 0)))))
+
+  (use-package exec-path-from-shell
   :config
-  ;; Ensure temporary directories exist
-  (mapc (lambda (dir)
-          (unless (file-exists-p dir)
-            (make-directory dir t)))
-        '("~/.config/emacs/tmp/backups"
-          "~/.config/emacs/tmp/auto-save"
-          "~/.config/emacs/tmp/undo-tree"))
-
-  ;; Display enhancements
-  (setq display-line-numbers-type t)
-  (global-display-line-numbers-mode 1)
-  (global-visual-line-mode 1)
-  (global-hl-line-mode 1)
-
-  ;; Disable line numbers in selected modes
-  (dolist (hook '(org-mode-hook eshell-mode-hook term-mode-hook))
-    (add-hook hook (lambda () (display-line-numbers-mode 0)))))
+  (exec-path-from-shell-initialize))
 #+end_src
 
 * User Interface and Appearance
