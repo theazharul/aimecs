@@ -10,6 +10,7 @@
 - [[#themes-and-fonts][Themes and Fonts]]
 - [[#keybindings][Keybindings]]
 - [[#dictionary][Dictionary]]
+- [[#search][Search]]
 - [[#shell][Shell]]
 - [[#org][Org]]
 - [[#projectile][Projectile]]
@@ -317,6 +318,17 @@
   (setq dictionary-server "localhost"))           ;; Use the local dictionary server
 #+end_src
 
+* Search
+#+begin_src emacs-lisp
+(use-package ag
+  :ensure t
+  :commands (ag ag-files ag-regexp ag-project)
+  :init
+  (setq ag-highlight-search t
+        ag-reuse-buffers t
+        ag-reuse-window t))
+
+#+end_src
 * Shell
 #+begin_src emacs-lisp
   (use-package vterm
