@@ -284,7 +284,7 @@
         (org-indent-item))
     (org-insert-heading))
   (when (org-at-heading-p)
-    (org-demote-subtree)))
+    (org-do-demote)))
 
 (use-package recentf
   :ensure nil
@@ -516,7 +516,7 @@
   ;; Configure eglot-server-programs
   (setq eglot-server-programs
         '((python-ts-mode   . ("pyright-langserver" "--stdio"))
-          (elixir-ts-mode    . ("elixir-ls" "--stdio"))
+          (elixir-ts-mode    . ("~/.elixir-ls/language_server.sh"))
           (css-ts-mode       . ("vscode-css-languageserver" "--stdio"))
           (html-ts-mode      . ("vscode-html-languageserver" "--stdio"))
           ((js-ts-mode tsx-ts-mode typescript-ts-mode) . ("typescript-language-server" "--stdio"))
