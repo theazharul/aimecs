@@ -37,33 +37,37 @@
 - [[#dashboard][Dashboard]]
 - [[#rest][Rest]]
 - [[#popper][Popper]]
+- [[#auth-source-pass][Auth source pass]]
+- [[#email][Email]]
+  - [[#mu4e][mu4e]]
+  - [[#gnus][Gnus]]
 
 * Initialization and Setup
 #+begin_src emacs-lisp
-;; -*- lexical-binding: t; -*-
+  ;; -*- lexical-binding: t; -*-
   ;; Use SSH and shallow clones for faster cloning
-(setq straight-vc-git-default-protocol 'ssh)
-(setq straight-vc-git-default-clone-depth 1)
-(setq straight-repository-branch "develop")
+  (setq straight-vc-git-default-protocol 'ssh)
+  (setq straight-vc-git-default-clone-depth 1)
+  (setq straight-repository-branch "develop")
 
-;; Bootstrap straight.el
-(setq bootstrap-version 6)
-(let ((bootstrap-file
-       (expand-file-name "straight/repos/straight.el/bootstrap.el" user-emacs-directory))
-      (bootstrap-url
-       "https://raw.githubusercontent.com/radian-software/straight.el/develop/install.el")) ;; still HTTPS, for install
-  (unless (file-exists-p bootstrap-file)
-    (with-current-buffer
-        (url-retrieve-synchronously bootstrap-url 'silent 'inhibit-cookies)
-      (goto-char (point-max))
-      (eval-print-last-sexp)))
-  (load bootstrap-file nil 'nomessage))
+  ;; Bootstrap straight.el
+  (setq bootstrap-version 6)
+  (let ((bootstrap-file
+         (expand-file-name "straight/repos/straight.el/bootstrap.el" user-emacs-directory))
+        (bootstrap-url
+         "https://raw.githubusercontent.com/radian-software/straight.el/develop/install.el")) ;; still HTTPS, for install
+    (unless (file-exists-p bootstrap-file)
+      (with-current-buffer
+          (url-retrieve-synchronously bootstrap-url 'silent 'inhibit-cookies)
+        (goto-char (point-max))
+        (eval-print-last-sexp)))
+    (load bootstrap-file nil 'nomessage))
 
-;; Ensure use-package is installed and integrated with straight.el
-(straight-use-package 'use-package)
+  ;; Ensure use-package is installed and integrated with straight.el
+  (straight-use-package 'use-package)
 
-;; (Optional) Always use straight.el with use-package
-(setq straight-use-package-by-default t)
+  ;; (Optional) Always use straight.el with use-package
+  (setq straight-use-package-by-default t)
 
 #+end_src
 
@@ -86,14 +90,11 @@
     (evil-collection-init))
 
   (use-package evil-commentary
-    ;; :straight t
     :after evil
     :config
     (evil-commentary-mode))
 
   (use-package evil-mc
-    ;; :ensure t
-    ;; :straight t
     :after evil
     :config
     ;; Enable evil-mc globally
@@ -130,8 +131,8 @@
       (add-hook hook (lambda () (display-line-numbers-mode 0)))))
 
   (use-package exec-path-from-shell
-  :config
-  (exec-path-from-shell-initialize))
+    :config
+    (exec-path-from-shell-initialize))
 #+end_src
 
 * User Interface and Appearance
@@ -260,11 +261,11 @@
     "o P" 'org-paste-subtree)
 
   (my-leader-def
-  "t"   '(:ignore t :which-key "toggles")
-  "t v" '(vterm :which-key "vterm")
-  "t p" '(popper-toggle :which-key "toggle popup")
-  "t P" '(popper-cycle :which-key "cycle popup")
-  "t T" '(popper-toggle-type :which-key "toggle popup type"))
+    "t"   '(:ignore t :which-key "toggles")
+    "t v" '(vterm :which-key "vterm")
+    "t p" '(popper-toggle :which-key "toggle popup")
+    "t P" '(popper-cycle :which-key "cycle popup")
+    "t T" '(popper-toggle-type :which-key "toggle popup type"))
 
   (with-eval-after-load 'org
     (general-define-key
@@ -318,52 +319,28 @@
 
 * Dictionary
 #+begin_src emacs-lisp
-(use-package dictionary
-  :ensure t
-  :bind (("C-c d" . dictionary-search)            ;; Prompted word lookup
-         ("C-c D" . dictionary-lookup-definition)) ;; Definition at point
-  :config
-  (setq dictionary-server "localhost"))           ;; Use the local dictionary server
+  (use-package dictionary
+    :bind (("C-c d" . dictionary-search)            ;; Prompted word lookup
+           ("C-c D" . dictionary-lookup-definition)) ;; Definition at point
+    :config
+    (setq dictionary-server "localhost"))           ;; Use the local dictionary server
 #+end_src
 
 * Search
 #+begin_src emacs-lisp
-(use-package ag
-  :ensure t
-  :commands (ag ag-files ag-regexp ag-project)
-  :init
-  (setq ag-highlight-search t
-        ag-reuse-buffers t
-        ag-reuse-window t))
+  (use-package ag
+    :commands (ag ag-files ag-regexp ag-project)
+    :init
+    (setq ag-highlight-search t
+          ag-reuse-buffers t
+          ag-reuse-window t))
 
 #+end_src
 * Shell
 #+begin_src emacs-lisp
   (use-package vterm
-    ;; :ensure t
     :config
     (setq vterm-shell "zsh"))
-    ;; (defun my-vterm-toggle ()
-    ;;   "Open vterm in a split window at the bottom, or focus it if it's already open."
-    ;;   (interactive)
-    ;;   (let ((vterm-buffer (get-buffer "*vterm*")))  ;; Check if vterm buffer exists
-    ;;     (if vterm-buffer
-    ;;         (let ((vterm-window (get-buffer-window vterm-buffer)))
-    ;;           (if vterm-window
-    ;;               (delete-window vterm-window)  ;; Close the existing vterm window
-    ;;             (progn
-    ;;               (split-window-below)        ;; Split the window horizontally at the bottom
-    ;;               (other-window 1)             ;; Move the cursor to the new window
-    ;;               (vterm))))                  ;; Open a new vterm in the new window
-    ;;       (progn
-    ;;         (split-window-below)            ;; Split the window horizontally at the bottom
-    ;;         (other-window 1)                ;; Move the cursor to the new window
-    ;;         (vterm)))))                     ;; Open a new vterm in the new window
-
-    ;; (general-define-key
-    ;;  :prefix "SPC"
-    ;;  :states '(normal)
-    ;;  "t v" 'my-vterm-toggle))  ;; Bind to SPC t v
 #+end_src
 
 * Org
@@ -416,17 +393,12 @@
 
   ;; Projectile Configuration
   (use-package projectile
-    ;; :ensure t
-    ;; :straight t
     :init
-
     (setq projectile-sort-order 'recentf)
     ;; Enable caching for faster project navigation
     (setq projectile-enable-caching t)
-
     ;; Set the default search path for projects
     (setq projectile-project-search-path '("~/AndroidStudioProjects/" "~/Workspace/"))
-
     ;; Automatically switch to project directory view
     (setq projectile-switch-project-action #'projectile-dired)
     :config
@@ -434,79 +406,75 @@
     (projectile-mode +1)
 
     )
-
-
   ;; Keybindings
   (define-key projectile-mode-map (kbd "C-c p") 'projectile-command-map)
 
   (my-leader-def
     "p" 'projectile-command-map  ;; Use SPC p for Projectile commands
     "/" 'projectile-ripgrep)     ;; Bind / to projectile-ripgrep under Projectile commands
-
-
 #+end_src
 
 * LSP and Programming
 ** Treesit
 #+begin_src emacs-lisp
-;; Ensure Tree-sitter integration (Emacs 29+)
-(use-package treesit
-  :straight (:type built-in)
-  :init
-  (setq treesit-language-source-alist
-        '((bash "https://github.com/tree-sitter/tree-sitter-bash")
-          (cmake "https://github.com/uyha/tree-sitter-cmake")
-          (c "https://github.com/tree-sitter/tree-sitter-c")
-          (css "https://github.com/tree-sitter/tree-sitter-css")
-          (elisp "https://github.com/Wilfred/tree-sitter-elisp")
-          (go "https://github.com/tree-sitter/tree-sitter-go")
-          (html "https://github.com/tree-sitter/tree-sitter-html")
-          (javascript "https://github.com/tree-sitter/tree-sitter-javascript" "master" "src")
-          (json "https://github.com/tree-sitter/tree-sitter-json")
-          (make "https://github.com/alemuller/tree-sitter-make")
-          (markdown "https://github.com/ikatyang/tree-sitter-markdown")
-          (python "https://github.com/tree-sitter/tree-sitter-python")
-          (toml "https://github.com/tree-sitter/tree-sitter-toml")
-          (tsx "https://github.com/tree-sitter/tree-sitter-typescript" "master" "tsx/src")
-          (typescript "https://github.com/tree-sitter/tree-sitter-typescript" "master" "typescript/src")
-          (yaml "https://github.com/ikatyang/tree-sitter-yaml")
-          (heex "https://github.com/phoenixframework/tree-sitter-heex")
-          (elixir "https://github.com/elixir-lang/tree-sitter-elixir")))
+  ;; Ensure Tree-sitter integration (Emacs 29+)
+  (use-package treesit
+    :straight (:type built-in)
+    :init
+    (setq treesit-language-source-alist
+          '((bash "https://github.com/tree-sitter/tree-sitter-bash")
+            (cmake "https://github.com/uyha/tree-sitter-cmake")
+            (c "https://github.com/tree-sitter/tree-sitter-c")
+            (css "https://github.com/tree-sitter/tree-sitter-css")
+            (elisp "https://github.com/Wilfred/tree-sitter-elisp")
+            (go "https://github.com/tree-sitter/tree-sitter-go")
+            (html "https://github.com/tree-sitter/tree-sitter-html")
+            (javascript "https://github.com/tree-sitter/tree-sitter-javascript" "master" "src")
+            (json "https://github.com/tree-sitter/tree-sitter-json")
+            (make "https://github.com/alemuller/tree-sitter-make")
+            (markdown "https://github.com/ikatyang/tree-sitter-markdown")
+            (python "https://github.com/tree-sitter/tree-sitter-python")
+            (toml "https://github.com/tree-sitter/tree-sitter-toml")
+            (tsx "https://github.com/tree-sitter/tree-sitter-typescript" "master" "tsx/src")
+            (typescript "https://github.com/tree-sitter/tree-sitter-typescript" "master" "typescript/src")
+            (yaml "https://github.com/ikatyang/tree-sitter-yaml")
+            (heex "https://github.com/phoenixframework/tree-sitter-heex")
+            (elixir "https://github.com/elixir-lang/tree-sitter-elixir")))
 
-  :config
-  ;; Ensure Tree-sitter parser for a language is installed
-  (defun my/ensure-treesit-parser (lang)
-    "Ensure Tree-sitter parser for LANG is installed."
-    (unless (treesit-language-available-p lang)
-      (treesit-install-language-grammar lang)))
+    :config
+    ;; Ensure Tree-sitter parser for a language is installed
+    (defun my/ensure-treesit-parser (lang)
+      "Ensure Tree-sitter parser for LANG is installed."
+      (unless (treesit-language-available-p lang)
+        (treesit-install-language-grammar lang)))
 
-  ;; Install parsers for common languages
-  (dolist (lang '(python javascript css html json bash elixir yaml))
-    (my/ensure-treesit-parser lang))
+    ;; Install parsers for common languages
+    (dolist (lang '(python javascript css html json bash elixir yaml))
+      (my/ensure-treesit-parser lang))
 
-  ;; Optional: Inspect Treesit parsing structure for debugging
-  (add-hook 'js-ts-mode-hook #'treesit-inspect-mode)
-  (add-hook 'typescript-ts-mode-hook #'treesit-inspect-mode))
+    ;; Optional: Inspect Treesit parsing structure for debugging
+    (add-hook 'js-ts-mode-hook #'treesit-inspect-mode)
+    (add-hook 'typescript-ts-mode-hook #'treesit-inspect-mode))
 
-;; Enhance syntax highlighting detail
-(use-package font-lock
-  :straight (:type built-in)
-  :config
-  (setq treesit-font-lock-level 4))
+  ;; Enhance syntax highlighting detail
+  (use-package font-lock
+    :straight (:type built-in)
+    :config
+    (setq treesit-font-lock-level 4))
 
-;; Optional: tree-sitter core mode
-(use-package tree-sitter
-  :hook ((prog-mode . global-tree-sitter-mode)
-         (tree-sitter-after-on . tree-sitter-hl-mode))
-  :config
-  (setq tree-sitter-major-mode-language-alist
-        '((js-mode . javascript)
-          (jsx-mode . javascript)
-          (php-mode . php)
-          (elixir-mode . elixir)
-          (yaml-mode . yaml))))
+  ;; Optional: tree-sitter core mode
+  (use-package tree-sitter
+    :hook ((prog-mode . global-tree-sitter-mode)
+           (tree-sitter-after-on . tree-sitter-hl-mode))
+    :config
+    (setq tree-sitter-major-mode-language-alist
+          '((js-mode . javascript)
+            (jsx-mode . javascript)
+            (php-mode . php)
+            (elixir-mode . elixir)
+            (yaml-mode . yaml))))
 
-(use-package tree-sitter-langs)
+  (use-package tree-sitter-langs)
 #+end_src
 
 ** Eglot
@@ -516,40 +484,40 @@
   (when (and (functionp 'treesit-available-p) (treesit-available-p))
     (message "Tree-sitter is available"))
 
-(use-package eglot
-  :init
-  (setq eglot-events-buffer-size 0
-        eglot-stay-out-of '(eldoc))
+  (use-package eglot
+    :init
+    (setq eglot-events-buffer-size 0
+          eglot-stay-out-of '(eldoc))
 
-  ;; Configure eglot-server-programs
-  (setq eglot-server-programs
-        '((python-ts-mode   . ("pyright-langserver" "--stdio"))
-          (elixir-ts-mode    . ("~/.elixir-ls/release/language_server.sh"))
-          (css-ts-mode       . ("vscode-css-languageserver" "--stdio"))
-          (html-ts-mode      . ("vscode-html-languageserver" "--stdio"))
-          ((js-ts-mode tsx-ts-mode typescript-ts-mode) . ("typescript-language-server" "--stdio"))
-          (json-ts-mode      . ("vscode-json-languageserver" "--stdio"))
-          (go-ts-mode        . ("gopls"))
-          (yaml-ts-mode      . ("yaml-language-server" "--stdio"))
-          (php-mode          . ("intelephense" "--stdio"))
-          (dart-mode         . ("dart" "language-server"))))
+    ;; Configure eglot-server-programs
+    (setq eglot-server-programs
+          '((python-ts-mode   . ("pyright-langserver" "--stdio"))
+            (elixir-ts-mode    . ("~/.elixir-ls/release/language_server.sh"))
+            (css-ts-mode       . ("vscode-css-languageserver" "--stdio"))
+            (html-ts-mode      . ("vscode-html-languageserver" "--stdio"))
+            ((js-ts-mode tsx-ts-mode typescript-ts-mode) . ("typescript-language-server" "--stdio"))
+            (json-ts-mode      . ("vscode-json-languageserver" "--stdio"))
+            (go-ts-mode        . ("gopls"))
+            (yaml-ts-mode      . ("yaml-language-server" "--stdio"))
+            (php-mode          . ("intelephense" "--stdio"))
+            (dart-mode         . ("dart" "language-server"))))
 
-  :hook
-  ((python-ts-mode js-ts-mode tsx-ts-mode typescript-ts-mode css-ts-mode html-ts-mode json-ts-mode
-                    elixir-ts-mode go-ts-mode yaml-ts-mode php-mode dart-mode)
-   . eglot-ensure)
+    :hook
+    ((python-ts-mode js-ts-mode tsx-ts-mode typescript-ts-mode css-ts-mode html-ts-mode json-ts-mode
+                     elixir-ts-mode go-ts-mode yaml-ts-mode php-mode dart-mode)
+     . eglot-ensure)
 
-  :config
-  ;; Format on save only for eglot-managed Elixir buffers
-  (add-hook 'eglot-managed-mode-hook
-            (lambda ()
-              (when (derived-mode-p 'elixir-ts-mode)
-                (add-hook 'before-save-hook #'eglot-format-buffer -10 t))))
+    :config
+    ;; Format on save only for eglot-managed Elixir buffers
+    (add-hook 'eglot-managed-mode-hook
+              (lambda ()
+                (when (derived-mode-p 'elixir-ts-mode)
+                  (add-hook 'before-save-hook #'eglot-format-buffer -10 t))))
 
-  ;; Integrate flymake diagnostics into eglot
-  (add-hook 'eglot-managed-mode-hook
-            (lambda ()
-              (add-hook 'flymake-diagnostic-functions #'eglot-flymake-backend nil t))))
+    ;; Integrate flymake diagnostics into eglot
+    (add-hook 'eglot-managed-mode-hook
+              (lambda ()
+                (add-hook 'flymake-diagnostic-functions #'eglot-flymake-backend nil t))))
 #+end_src
 
 ** Code Block Formatting
@@ -578,8 +546,6 @@
 #+begin_src emacs-lisp
   ;; Corfu configuration for Evil
   (use-package corfu
-    ;; :straight t
-    :ensure t
     :custom
     (corfu-cycle t)
     (corfu-auto t)
@@ -600,8 +566,6 @@
 #+begin_src emacs-lisp
   ;; Vertico configuration with Evil bindings
   (use-package vertico
-    ;; :straight t
-    :ensure t
     :custom
     (vertico-cycle t)
     :bind (:map vertico-map
@@ -619,7 +583,6 @@
 #+begin_src emacs-lisp
   ;; Consult with Evil-friendly keybindings
   (use-package consult
-    ;; :ensure t
     :bind
     (:map evil-normal-state-map
           ("<leader>f" . consult-find)         ;; Search files
@@ -639,7 +602,6 @@
 #+begin_src emacs-lisp
   ;; Embark with Evil adjustments
   (use-package embark
-    ;; :ensure t
     :bind
     (:map evil-normal-state-map
           ("<leader>." . embark-act)          ;; Contextual action
@@ -649,7 +611,6 @@
 
   ;; Marginalia for annotations
   (use-package marginalia
-    ;; :straight t
     :ensure t
     :after vertico
     :init
@@ -688,7 +649,6 @@
 ** Prettier 
 #+begin_src emacs-lisp
   (use-package prettier
-    ;; :ensure t
     :hook ((js2-mode . prettier-mode)
            (rjsx-mode . prettier-mode)))
 
@@ -699,7 +659,6 @@
 #+begin_src emacs-lisp
   ;; Ensure web-mode is installed
   (use-package web-mode
-    ;; :straight t
     :mode ("\\.html?\\'" "\\.css\\'" "\\.js\\'" "\\.jsx\\'" "\\.ts\\'" "\\.tsx\\'" "\\.php\\'")
     :hook
     ((web-mode . eglot-ensure) ;; Ensure eglot LSP support for web-mode
@@ -730,7 +689,6 @@
 
   ;; Install and configure emmet-mode
   (use-package emmet-mode
-    ;; :straight t
     :hook ((web-mode css-mode sgml-mode) . emmet-mode) ;; Enable Emmet in web-mode, css-mode, and sgml-mode
     :config
     ;; Optional: Keybindings for Emmet
@@ -742,51 +700,49 @@
 
 ** Python
 #+begin_src emacs-lisp
-  ;; Python Language Configuration with eglot
-  ;;(use-package python-mode
-   ;; :straight t
-   ;; :hook
-    ;; Ensure eglot is initialized for python-mode
-   ;; (python-mode . eglot-ensure)
-   ;; :config
-    ;; Optional: Automatically format on save using LSP
-   ;; (add-hook 'eglot-managed-mode-hook
-     ;;         (lambda ()
-       ;;         (add-hook 'before-save-hook #'eglot-format-buffer -10 t))))
+  ;; ;; Python Language Configuration with eglot
+  ;; (use-package python-mode
+  ;; :hook
+  ;; ;; Ensure eglot is initialized for python-mode
+  ;; (python-mode . eglot-ensure)
+  ;; :config
+  ;; ;; Optional: Automatically format on save using LSP
+  ;; (add-hook 'eglot-managed-mode-hook
+  ;;         (lambda ()
+  ;;         (add-hook 'before-save-hook #'eglot-format-buffer -10 t))))
 #+end_src
 
 ** Elixir
 #+begin_src emacs-lisp
-(use-package elixir-ts-mode
-  :hook
-  (elixir-ts-mode . eglot-ensure)
-  (elixir-ts-mode . prettify-symbols-mode)
+  (use-package elixir-ts-mode
+    :hook
+    (elixir-ts-mode . eglot-ensure)
+    (elixir-ts-mode . prettify-symbols-mode)
 
-  :init
-  ;; Ensure Tree-sitter support for Elixir
-  (when (and (fboundp 'treesit-language-available-p)
-             (not (treesit-language-available-p 'elixir)))
-    (treesit-install-language-grammar 'elixir))
+    :init
+    ;; Ensure Tree-sitter support for Elixir
+    (when (and (fboundp 'treesit-language-available-p)
+               (not (treesit-language-available-p 'elixir)))
+      (treesit-install-language-grammar 'elixir))
 
-  :config
-  ;; Set prettify symbols for Elixir
-  (setq prettify-symbols-alist
-        '((">=" . ?\u2265)   ;; ≥
-          ("<=" . ?\u2264)   ;; ≤
-          ("!=" . ?\u2260)   ;; ≠
-          ("==" . ?\u2A75)   ;; ≵
-          ("=~" . ?\u2245)   ;; ≅
-          ("<-" . ?\u2190)   ;; ←
-          ("->" . ?\u2192)   ;; →
-          ("|>" . ?\u25B7))) ;; ▶
-  (prettify-symbols-mode 1))
+    :config
+    ;; Set prettify symbols for Elixir
+    (setq prettify-symbols-alist
+          '((">=" . ?\u2265)   ;; ≥
+            ("<=" . ?\u2264)   ;; ≤
+            ("!=" . ?\u2260)   ;; ≠
+            ("==" . ?\u2A75)   ;; ≵
+            ("=~" . ?\u2245)   ;; ≅
+            ("<-" . ?\u2190)   ;; ←
+            ("->" . ?\u2192)   ;; →
+            ("|>" . ?\u25B7))) ;; ▶
+    (prettify-symbols-mode 1))
 #+end_src
 
 ** Dart
 #+begin_src emacs-lisp
   ;; Dart Language Configuration with eglot
   (use-package dart-mode
-    ;; :straight t
     :hook
     ;; Ensure eglot is initialized for dart-mode
     (dart-mode . eglot-ensure)
@@ -809,40 +765,11 @@
   (add-to-list 'auto-mode-alist '("\\.jsx\\'" . tsx-ts-mode)) ;; JSX
   (add-to-list 'auto-mode-alist '("\\.ts\\'" . typescript-ts-mode)) ;; TypeScript
   (add-to-list 'auto-mode-alist '("\\.tsx\\'" . tsx-ts-mode)) ;; TSX
-
-
-  ;; ;; JavaScript and TypeScript Configuration with eglot
-  ;; (use-package js2-mode
-  ;;   :ensure t
-  ;;   :hook
-  ;;   ;; Enable eglot for JavaScript and TypeScript files
-  ;;   ((js2-mode . eglot-ensure)
-  ;;    (js2-mode . subword-mode))  ;; Enable subword mode for camelCase movement
-  ;;   :mode ("\\.js\\'" "\\.jsx\\'" "\\.ts\\'" "\\.tsx\\'")  ;; File extensions for JavaScript and React
-
-  ;;   :config
-  ;;   (setq js2-basic-offset 2)  ;; JavaScript indentation (React style)
-  ;;   ;; Optional: Disable unnecessary warnings for JavaScript files
-  ;;   (add-hook 'js2-mode-hook (lambda () (setq js2-mode-show-strict-warnings nil))))
-
-  ;; ;; React/JSX specific configuration with eglot
-  ;; (use-package rjsx-mode
-  ;;   :ensure t
-  ;;   :mode ("\\.jsx\\'" "\\.tsx\\'")
-  ;;   :hook
-  ;;   ;; Enable eglot in rjsx-mode
-  ;;   ((rjsx-mode . eglot-ensure)
-  ;;    (rjsx-mode . subword-mode))  ;; Enable subword mode for camelCase movement
-  ;;   :config
-  ;;   (setq js2-basic-offset 2)  ;; ReactJS style indentation
-  ;;   ;; Disable unnecessary warnings in rjsx-mode
-  ;;   (add-hook 'rjsx-mode-hook (lambda () (setq js2-mode-show-strict-warnings nil))))
 #+end_src
 
 ** PHP
 #+begin_src emacs-lisp
   (use-package php-mode
-    :ensure t
     :hook
     ((php-mode . eglot-ensure)  ;; Enable eglot for PHP files
      (php-mode . (lambda ()      ;; Set tab width for PHP
@@ -858,7 +785,6 @@
 ** PO
 #+begin_src emacs-lisp
   (use-package po-mode
-    ;; :ensure t
     :mode ("\\.po\\'" "\\.pot\\'")
     :hook (po-mode . flyspell-mode) ; Enable spell checking in po-mode
     :config
@@ -870,7 +796,6 @@
 * Pdf
 #+begin_src emacs-lisp
   (use-package pdf-tools
-    :ensure t
     :config
     (pdf-tools-install)
     (setq TeX-view-program-selection '((output-pdf "PDF Tools"))
@@ -886,7 +811,6 @@
 
   ;; (straight-use-package 'hydra)
   (use-package hydra
-    :ensure t
     :config
     ;; Example hydra for window management
     (defhydra hydra-window (:color pink :hint nil)
@@ -917,7 +841,6 @@
 
   ;; (straight-use-package 'dashboard)
   (use-package dashboard
-    ;; :ensure t
     :config
     (setq dashboard-startup-banner 'official
           dashboard-center-content t
@@ -929,15 +852,8 @@
 
 #+begin_src emacs-lisp
 
-
   ;; Enable LSP logging (optional for debugging)
   (setq lsp-log-io nil)
-
-
-
-
-
-
 
   (use-package yasnippet
     :hook ((php-mode . yas-minor-mode)
@@ -948,7 +864,6 @@
     :config
     (yas-global-mode 1))
 
-
   ;; (straight-use-package 'editorconfig)
   (use-package editorconfig
     :ensure t
@@ -956,33 +871,27 @@
     (editorconfig-mode 1))
 
   ;; Non-keybindings general settings
-
   (setq select-enable-clipboard t)
   (setq select-enable-primary t)
-
 
   ;; (straight-use-package 'treemacs)
   ;; (straight-use-package 'treemacs-projectile)
 
   (use-package treemacs
-    ;; :ensure t
     :bind ("C-x t" . treemacs))
 
 
 
   ;; (straight-use-package 'expand-region)
   (use-package expand-region
-    :ensure t
     :bind ("C-=" . er/expand-region))
 
   ;; (straight-use-package 'smartparens)
   (use-package smartparens
-    :ensure t
     :config
     (smartparens-global-mode t))
 
   (use-package undo-tree
-    ;; :straight t
     :init
     ;; Set the directory for storing undo history files.
     (setq undo-tree-history-directory-alist
@@ -1015,30 +924,88 @@
 #+end_src
 * Popper 
 #+begin_src emacs-lisp
-(use-package popper
-  :ensure t
-  :init
-  (setq popper-reference-buffers
-        '("\\*Messages\\*"
-          "\\*Warnings\\*"
-          "\\*Compile-Log\\*"
-          "\\*compilation\\*"
-          "\\*ag search\\*"
-          "\\*Help\\*"
-          "\\*eldoc\\*"
-          "\\*grep\\*"
-          "\\*xref\\*"
-          "\\*Backtrace\\*"
-          "\\*Async Shell Command\\*"
-          "\\*vterm\\*"
-          "\\*eshell\\*"
-          "\\*shell\\*"))
-  (popper-mode +1)
-  (popper-echo-mode +1)
-  :config
-  ;; Optional: make popups display at the bottom
-  (setq popper-display-control t)
-  (setq popper-window-height 15)
-  ;; Optional: make popups act like regular windows (useful in Evil)
-  (setq popper-mode-line nil))
+  (use-package popper
+    :init
+    (setq popper-reference-buffers
+          '("\\*Messages\\*"
+            "\\*Warnings\\*"
+            "\\*Dictionary\\*"
+            "\\*Compile-Log\\*"
+            "\\*compilation\\*"
+            "\\*ag search\\*"
+            "\\*Help\\*"
+            "\\*eldoc\\*"
+            "\\*grep\\*"
+            "\\*xref\\*"
+            "\\*Backtrace\\*"
+            "\\*Async Shell Command\\*"
+            "\\*vterm\\*"
+            "\\*eshell\\*"
+            "\\*shell\\*"))
+    (popper-mode +1)
+    (popper-echo-mode +1)
+    :config
+    ;; Optional: make popups display at the bottom
+    (setq popper-display-control t)
+    (setq popper-window-height 15)
+    ;; Optional: make popups act like regular windows (useful in Evil)
+    (setq popper-mode-line nil))
+#+end_src
+
+* Auth source pass
+#+begin_src emacs-lisp
+  (use-package auth-source-pass
+    :config
+    (auth-source-pass-enable))
+#+end_src
+
+* Email
+** mu4e
+#+begin_src emacs-lisp
+  (use-package mu4e
+    :load-path "/usr/share/emacs/site-lisp/elpa/mu4e-1.8.14"
+    :ensure nil  ;; mu4e comes with mu on system
+    :defer t
+    :config
+    (setq mu4e-maildir "~/.mail/gmail"
+          mu4e-get-mail-command "mbsync gmail"
+          mu4e-update-interval 300
+          mu4e-compose-format-flowed t
+          mu4e-sent-folder "/Sent"
+          mu4e-drafts-folder "/Drafts"
+          mu4e-trash-folder "/Trash"
+          mu4e-refile-folder "/Archive"
+
+          ;; Optional: always show images
+          mu4e-view-show-images t
+          mu4e-view-show-addresses t)
+
+    ;; Use msmtp for sending mail
+    (setq message-send-mail-function 'smtpmail-send-it
+          sendmail-program "/usr/bin/msmtp"
+          mail-specify-envelope-from t
+          message-sendmail-envelope-from 'header))
+#+end_src
+
+** Gnus
+#+begin_src emacs-lisp
+  (setq user-full-name "Azhar Ibn Mostafiz"
+        user-mail-address "theazharul@gmail.com")
+
+  (setq gnus-select-method
+        '(nnimap "gmail"
+                 (nnimap-address "imap.gmail.com")
+                 (nnimap-server-port 993)
+                 (nnimap-stream ssl)))
+
+  (setq smtpmail-smtp-server "smtp.gmail.com"
+        smtpmail-smtp-service 587
+        smtpmail-stream-type 'starttls
+        smtpmail-debug-info t)
+
+  (setq message-send-mail-function 'smtpmail-send-it)
+
+  ;; Let auth-source-pass handle credentials
+  (setq auth-sources '("pass:"))
+
 #+end_src
