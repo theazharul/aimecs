@@ -31,6 +31,7 @@
   - [[#js][JS]]
   - [[#php][PHP]]
   - [[#po][PO]]
+- [[#latex][LaTex]]
 - [[#pdf][Pdf]]
 - [[#hydra][Hydra]]
 - [[#magit][Magit]]
@@ -68,6 +69,8 @@
 
   ;; (Optional) Always use straight.el with use-package
   (setq straight-use-package-by-default t)
+  (setq use-package-always-ensure t)
+
 
 #+end_src
 
@@ -131,6 +134,7 @@
       (add-hook hook (lambda () (display-line-numbers-mode 0)))))
 
   (use-package exec-path-from-shell
+    
     :config
     (exec-path-from-shell-initialize))
 #+end_src
@@ -148,12 +152,10 @@
 
   ;; (straight-use-package 'rainbow-delimiters)
   (use-package rainbow-delimiters
-    :ensure t
     :hook (prog-mode . rainbow-delimiters-mode))
 
   ;;(straight-use-package 'highlight-indent-guides)
   (use-package highlight-indent-guides
-    ;; :ensure t
     :hook (prog-mode . highlight-indent-guides-mode)
     :config
     (setq highlight-indent-guides-method 'character))
@@ -163,7 +165,6 @@
 #+begin_src emacs-lisp
   ;; (straight-use-package 'doom-themes)
   (use-package doom-themes
-    ;; :ensure t
     :config
     (load-theme 'doom-gruvbox t))
 
@@ -380,7 +381,6 @@
           org-agenda-window-setup 'current-window))
 
   (use-package toc-org
-    :ensure t
     :commands toc-org-enable
     :init
     (add-hook 'org-mode-hook 'toc-org-enable))
@@ -611,7 +611,6 @@
 
   ;; Marginalia for annotations
   (use-package marginalia
-    :ensure t
     :after vertico
     :init
     (marginalia-mode))
@@ -700,13 +699,13 @@
 
 ** Python
 #+begin_src emacs-lisp
-(use-package python
-  :mode ("\\.py\\'" . python-mode)
-  :interpreter ("python" . python-mode)
-  :hook (python-mode . eglot-ensure)
-  :config
-  (setq python-indent-offset 4
-        python-shell-interpreter "python3"))
+  (use-package python
+    :mode ("\\.py\\'" . python-mode)
+    :interpreter ("python" . python-mode)
+    :hook (python-mode . eglot-ensure)
+    :config
+    (setq python-indent-offset 4
+          python-shell-interpreter "python3"))
 #+end_src
 
 ** Elixir
@@ -715,13 +714,11 @@
     :hook
     (elixir-ts-mode . eglot-ensure)
     (elixir-ts-mode . prettify-symbols-mode)
-
     :init
     ;; Ensure Tree-sitter support for Elixir
     (when (and (fboundp 'treesit-language-available-p)
                (not (treesit-language-available-p 'elixir)))
       (treesit-install-language-grammar 'elixir))
-
     :config
     ;; Set prettify symbols for Elixir
     (setq prettify-symbols-alist
@@ -790,6 +787,32 @@
 
 #+end_src
 
+
+* LaTex
+#+begin_src emacs-lisp
+  (use-package auctex
+    :defer t
+    ;; do NOT add :init or :config that runs commands at startup
+    :hook ((LaTeX-mode . visual-line-mode)
+           (LaTeX-mode . LaTeX-math-mode)
+           (LaTeX-mode . flyspell-mode)
+           (LaTeX-mode . turn-on-reftex)
+           (LaTeX-mode . TeX-source-correlate-mode)
+           (LaTeX-mode . TeX-PDF-mode)
+           (LaTeX-mode . my/latex-auto-compile))
+    :config
+    ;; config here is okay because it's deferred until LaTeX mode loads
+    (setq TeX-view-program-selection '((output-pdf "PDF Tools"))
+          TeX-source-correlate-start-server t
+          TeX-auto-save t
+          TeX-parse-self t
+          TeX-save-query nil
+          TeX-command-default "LatexMk")
+    (add-hook 'TeX-mode-hook
+              (lambda ()
+                (setq TeX-command-extra-options "-shell-escape"))))
+#+end_src
+
 * Pdf
 #+begin_src emacs-lisp
   (use-package pdf-tools
@@ -835,8 +858,6 @@
 
 * Dashboard
 #+begin_src emacs-lisp
-
-  ;; (straight-use-package 'dashboard)
   (use-package dashboard
     :config
     (setq dashboard-startup-banner 'official
@@ -863,7 +884,6 @@
 
   ;; (straight-use-package 'editorconfig)
   (use-package editorconfig
-    :ensure t
     :config
     (editorconfig-mode 1))
 
