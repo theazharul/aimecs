@@ -700,16 +700,13 @@
 
 ** Python
 #+begin_src emacs-lisp
-  ;; ;; Python Language Configuration with eglot
-  ;; (use-package python-mode
-  ;; :hook
-  ;; ;; Ensure eglot is initialized for python-mode
-  ;; (python-mode . eglot-ensure)
-  ;; :config
-  ;; ;; Optional: Automatically format on save using LSP
-  ;; (add-hook 'eglot-managed-mode-hook
-  ;;         (lambda ()
-  ;;         (add-hook 'before-save-hook #'eglot-format-buffer -10 t))))
+(use-package python
+  :mode ("\\.py\\'" . python-mode)
+  :interpreter ("python" . python-mode)
+  :hook (python-mode . eglot-ensure)
+  :config
+  (setq python-indent-offset 4
+        python-shell-interpreter "python3"))
 #+end_src
 
 ** Elixir
