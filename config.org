@@ -68,6 +68,11 @@
     :config
     (evil-collection-init))
 
+  (use-package evil-surround
+    :ensure t
+    :config
+    (global-evil-surround-mode 1))
+
   (use-package evil-commentary
     :after evil
     :config
@@ -79,6 +84,26 @@
     ;; Enable evil-mc globally
     (global-evil-mc-mode 1)
     )
+  (use-package evil-leader
+    :ensure t
+    :config
+    (global-evil-leader-mode)
+    (evil-leader/set-leader ",")
+    (evil-leader/set-key-for-mode 'org-mode
+  				"a" 'org-agenda
+  				"c" 'org-capture
+  				"t" 'org-todo))
+
+  (use-package org-superstar
+    :ensure t
+    :hook (org-mode . org-superstar-mode))
+
+  (use-package evil-visualstar
+    :ensure t
+    :config
+    (global-evil-visualstar-mode))
+
+
 #+end_src
 
 * Basic Configuration
@@ -271,33 +296,50 @@
     "dd" '(org-roam-dailies-goto-date :which-key "pick date")
     "dc" '(org-roam-dailies-capture-today :which-key "capture today"))
 
-  (with-eval-after-load 'org
-    (general-define-key
-     :keymaps 'org-mode-map
-     "C-<return>" #'org-insert-list-or-heading
-     "C-M-<return>" #'org-insert-subitem-or-subheading))
+  ;;   (with-eval-after-load 'org
+  ;;     (general-define-key
+  ;;      :keymaps 'org-mode-map
+  ;;      "C-<return>" #'org-smart-insert-heading
+  ;;      "C-M-<return>" #'org-smart-insert-subheading))
+  ;; (defun org-smart-insert-heading ()
+  ;;   "Insert a new same-level heading after current subtree or list item."
+  ;;   (interactive)
+  ;;   (cond
+  ;;    ;; Inside list item
+  ;;    ((org-in-item-p)
+  ;;     (end-of-line)
+  ;;     (org-insert-item))
 
-  (defun org-insert-list-or-heading ()
-    "Insert a list item or heading depending on context."
-    (interactive)
-    (end-of-line)
-    (newline)
-    (if (org-in-item-p)
-        (org-insert-item)
-      (org-insert-heading)))
+  ;;    ;; Inside heading
+  ;;    ((org-at-heading-p)
+  ;;     (save-excursion
+  ;;       (org-end-of-subtree t t)          ; move to end of subtree
+  ;;       (skip-chars-forward " \t\n")      ; skip whitespace/newlines
+  ;;       (unless (eobp)                    ; unless we're at end-of-buffer
+  ;;         (newline))
+  ;;       (let ((pos (point)))
+  ;;         (goto-char pos)
+  ;;         (org-insert-heading))))
 
-  (defun org-insert-subitem-or-subheading ()
-    "Insert a sub-list item or a subheading depending on context."
-    (interactive)
-    (end-of-line)
-    (newline)
-    (if (org-in-item-p)
-        (progn
-          (org-insert-item)
-          (org-indent-item))
-      (org-insert-heading))
-    (when (org-at-heading-p)
-      (org-do-demote)))
+  ;;    ;; Default fallback
+  ;;    (t
+  ;;     (message "Not in item or heading"))))
+
+  ;; (defun org-smart-insert-subheading ()
+  ;;   "Insert a subheading or sub-item depending on context."
+  ;;   (interactive)
+  ;;   (cond
+  ;;    ((org-in-item-p)
+  ;;     (end-of-line)
+  ;;     (org-insert-item)
+  ;;     (org-indent-item))
+  ;;    ((org-at-heading-p)
+  ;;     (org-insert-subheading nil))
+  ;;    (t
+  ;;     (message "Not in item or heading"))))
+
+
+
 
   (use-package recentf
     :ensure nil
@@ -384,6 +426,24 @@
              (file+headline ,(expand-file-name "0.Inbox.org" my-org-dir) "Inbox")
              "*  %?\n  %i\n  %a"))
           org-agenda-window-setup 'current-window))
+
+  (use-package org-download
+  :after org
+  :requires url-handlers
+  :config
+  (setq org-download-method 'directory)
+  (setq org-download-image-dir "images"))
+
+  (use-package evil-org
+    :after (org evil)
+    :hook (org-mode . evil-org-mode)
+    :init
+    (setq evil-want-integration t
+          evil-want-keybinding nil) ; disable default evil-collection for org if needed
+    :config
+    (require 'evil-org-agenda)
+    (evil-org-agenda-set-keys)
+    (evil-org-set-key-theme '(textobjects insert navigation additional shift todo heading)))
 
   (use-package toc-org
     :commands toc-org-enable
