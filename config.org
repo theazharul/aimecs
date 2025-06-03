@@ -846,16 +846,32 @@
     :mode "\\.ts\\'"
     :hook (typescript-ts-mode . eglot-ensure))
 
-  (add-to-list 'auto-mode-alist '("\\.js\\'" . js-ts-mode))  ;; JavaScript
-  (add-to-list 'auto-mode-alist '("\\.jsx\\'" . tsx-ts-mode)) ;; JSX
-  (add-to-list 'auto-mode-alist '("\\.ts\\'" . typescript-ts-mode)) ;; TypeScript
-  (add-to-list 'auto-mode-alist '("\\.tsx\\'" . tsx-ts-mode)) ;; TSX
+  ;; Associate extensions with correct major modes
+  (setq auto-mode-alist
+        (append
+         '(("\\.js\\'" . js-ts-mode)
+           ("\\.jsx\\'" . js-ts-mode)  ;; `js-ts-mode` handles JSX well
+           ("\\.ts\\'" . typescript-ts-mode)
+           ("\\.tsx\\'" . tsx-ts-mode))
+         auto-mode-alist))
 
-  ;; Enable yasnippet in all JS/TS modes
+  ;; Enable yasnippet in all relevant modes
   (dolist (hook '(tsx-ts-mode-hook
                   typescript-ts-mode-hook
                   js-ts-mode-hook))
     (add-hook hook #'yas-minor-mode))
+
+  ;; ;; Run Prettier on save in js-ts-mode
+  ;; (add-hook 'js-ts-mode-hook
+  ;;           (lambda ()
+  ;;             (when (executable-find "prettier")
+  ;;               (add-hook 'before-save-hook #'prettier-format-buffer nil t))))
+
+  ;; (add-hook 'tsx-ts-mode-hook
+  ;;           (lambda ()
+  ;;             (when (executable-find "prettier")
+  ;;               (add-hook 'before-save-hook #'prettier-format-buffer nil t))))
+
 #+end_src
 
 ** PHP
@@ -890,18 +906,17 @@
     "Format buffer on save using appropriate tool per language, preserving point."
     (interactive)
     (let ((pos (point))
-  	(win-start (window-start)))
+          (win-start (window-start)))
       (cond
        ;; JavaScript / HTML / CSS / JSON
        ((member major-mode '(js-mode js-ts-mode js2-mode typescript-mode tsx-ts-mode
                                      json-mode css-mode html-mode web-mode))
         (when (executable-find "prettier")
-  	(call-process-region (point-min) (point-max)
+          (call-process-region (point-min) (point-max)
                                "prettier" t t nil
                                "--stdin-filepath" (or buffer-file-name ""))))
-
        ;; PHP
-       ((eq major-mode 'php-mode)
+       ((member major-mode '(php-mode))
         (when (executable-find "pint")
   	(shell-command (format "pint %s" (shell-quote-argument buffer-file-name)))
   	(revert-buffer t t t)))
@@ -909,22 +924,25 @@
        ;; Elixir
        ((member major-mode '(elixir-mode heex-ts-mode))
         (when (executable-find "mix")
-  	(shell-command (format "mix format %s" (shell-quote-argument buffer-file-name)))
-  	(revert-buffer t t t)))
+          (shell-command (format "mix format %s"
+                                 (shell-quote-argument buffer-file-name)))
+          (revert-buffer t t t)))
 
        ;; Python
        ((eq major-mode 'python-mode)
         (when (executable-find "black")
-  	(shell-command (format "black %s" (shell-quote-argument buffer-file-name)))
-  	(revert-buffer t t t)))
+          (shell-command (format "black %s"
+                                 (shell-quote-argument buffer-file-name)))
+          (revert-buffer t t t)))
 
        ;; Dart
        ((eq major-mode 'dart-mode)
         (when (executable-find "dart")
-  	(shell-command (format "dart format %s" (shell-quote-argument buffer-file-name)))
-  	(revert-buffer t t t)))
+          (shell-command (format "dart format %s"
+                                 (shell-quote-argument buffer-file-name)))
+          (revert-buffer t t t)))
 
-       ;; Rust or fallback to eglot
+       ;; Rust via eglot
        ((and (bound-and-true-p eglot-managed-mode)
              (eglot--capability :documentFormattingProvider))
         (eglot-format-buffer))
@@ -941,8 +959,66 @@
       (goto-char (min pos (point-max)))
       (set-window-start (selected-window) win-start)))
 
-  ;; Enable globally
   (add-hook 'before-save-hook #'my/format-buffer-smart)
+
+
+  ;; (defun my/format-buffer-smart ()
+  ;;   "Format buffer on save using appropriate tool per language, preserving point."
+  ;;   (interactive)
+  ;;   (let ((pos (point))
+  ;; 	(win-start (window-start)))
+  ;;     (cond
+  ;;      ;; JavaScript / HTML / CSS / JSON
+  ;;      ((member major-mode '(js-mode js-ts-mode js2-mode typescript-mode tsx-ts-mode
+  ;;                                    json-mode css-mode html-mode web-mode))
+  ;;       (when (executable-find "prettier")
+  ;; 	(call-process-region (point-min) (point-max)
+  ;;                              "prettier" t t nil
+  ;;                              "--stdin-filepath" (or buffer-file-name ""))))
+
+  ;;      ;; PHP
+  ;;      ((eq major-mode 'php-mode)
+  ;;       (when (executable-find "pint")
+  ;; 	(shell-command (format "pint %s" (shell-quote-argument buffer-file-name)))
+  ;; 	(revert-buffer t t t)))
+
+  ;;      ;; Elixir
+  ;;      ((member major-mode '(elixir-mode heex-ts-mode))
+  ;;       (when (executable-find "mix")
+  ;; 	(shell-command (format "mix format %s" (shell-quote-argument buffer-file-name)))
+  ;; 	(revert-buffer t t t)))
+
+  ;;      ;; Python
+  ;;      ((eq major-mode 'python-mode)
+  ;;       (when (executable-find "black")
+  ;; 	(shell-command (format "black %s" (shell-quote-argument buffer-file-name)))
+  ;; 	(revert-buffer t t t)))
+
+  ;;      ;; Dart
+  ;;      ((eq major-mode 'dart-mode)
+  ;;       (when (executable-find "dart")
+  ;; 	(shell-command (format "dart format %s" (shell-quote-argument buffer-file-name)))
+  ;; 	(revert-buffer t t t)))
+
+  ;;      ;; Rust or fallback to eglot
+  ;;      ((and (bound-and-true-p eglot-managed-mode)
+  ;;            (eglot--capability :documentFormattingProvider))
+  ;;       (eglot-format-buffer))
+
+  ;;      ;; Emacs Lisp
+  ;;      ((eq major-mode 'emacs-lisp-mode)
+  ;;       (indent-region (point-min) (point-max)))
+
+  ;;      ;; Org Mode
+  ;;      ((eq major-mode 'org-mode)
+  ;;       (org-indent-region (point-min) (point-max))))
+
+  ;;     ;; Restore point and scroll
+  ;;     (goto-char (min pos (point-max)))
+  ;;     (set-window-start (selected-window) win-start)))
+
+  ;; ;; Enable globally
+  ;; (add-hook 'before-save-hook #'my/format-buffer-smart)
 #+end_src
 * LaTex
 #+begin_src emacs-lisp
@@ -1136,7 +1212,10 @@
             "\\*Async Shell Command\\*"
             "\\*vterm\\*"
             "\\*eshell\\*"
-            "\\*shell\\*"))
+            "\\*shell\\*"
+  	  "\\*pint-output\\*"
+  	  help-mode
+  	  compilation-mode))
     (popper-mode +1)
     (popper-echo-mode +1)
     :config
