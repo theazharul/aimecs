@@ -33,6 +33,7 @@
   - [[#js][JS]]
   - [[#php][PHP]]
   - [[#po][PO]]
+- [[#code-format][Code Format]]
 - [[#latex][LaTex]]
 - [[#pdf][Pdf]]
 - [[#hydra][Hydra]]
@@ -739,7 +740,7 @@
 #+begin_src emacs-lisp
   (use-package prettier
     :hook ((js2-mode . prettier-mode)
-           (rjsx-mode . prettier-mode)))
+  	 (rjsx-mode . prettier-mode)))
 
 #+end_src
 
@@ -840,15 +841,21 @@
 
 ** JS
 #+begin_src emacs-lisp
-  ;; Use the new modes for JavaScript, JSX, and TypeScript
-  (use-package typescript-ts-mode
-    :mode "\\.ts\\'"
-    :hook (typescript-ts-mode . eglot-ensure))
+    ;; Use the new modes for JavaScript, JSX, and TypeScript
+    (use-package typescript-ts-mode
+      :mode "\\.ts\\'"
+      :hook (typescript-ts-mode . eglot-ensure))
 
-  (add-to-list 'auto-mode-alist '("\\.js\\'" . js-ts-mode))  ;; JavaScript
-  (add-to-list 'auto-mode-alist '("\\.jsx\\'" . tsx-ts-mode)) ;; JSX
-  (add-to-list 'auto-mode-alist '("\\.ts\\'" . typescript-ts-mode)) ;; TypeScript
-  (add-to-list 'auto-mode-alist '("\\.tsx\\'" . tsx-ts-mode)) ;; TSX
+    (add-to-list 'auto-mode-alist '("\\.js\\'" . js-ts-mode))  ;; JavaScript
+    (add-to-list 'auto-mode-alist '("\\.jsx\\'" . tsx-ts-mode)) ;; JSX
+    (add-to-list 'auto-mode-alist '("\\.ts\\'" . typescript-ts-mode)) ;; TypeScript
+    (add-to-list 'auto-mode-alist '("\\.tsx\\'" . tsx-ts-mode)) ;; TSX
+  
+    ;; Enable yasnippet in all JS/TS modes
+  (dolist (hook '(tsx-ts-mode-hook
+                  typescript-ts-mode-hook
+                  js-ts-mode-hook))
+    (add-hook hook #'yas-minor-mode))
 #+end_src
 
 ** PHP
@@ -877,6 +884,51 @@
 
 #+end_src
 
+* Code Format 
+#+begin_src emacs-lisp
+  (defun my/format-buffer-smart ()
+  "Format buffer on save using appropriate tool per language."
+  (interactive)
+  (cond
+   ;; Use Prettier
+   ((member major-mode '(js-mode js-ts-mode js2-mode typescript-mode tsx-ts-mode
+                                 json-mode css-mode html-mode web-mode))
+    (when (executable-find "prettier")
+      (call-process-region (point-min) (point-max) "prettier" t t nil "--stdin-filepath" (or buffer-file-name ""))))
+
+   ;; PHP
+   ((member major-mode '(php-mode))
+    (when (executable-find "pint")
+      (shell-command (format "pint %s" (shell-quote-argument buffer-file-name)))
+      (revert-buffer t t t)))
+
+   ;; Elixir
+   ((member major-mode '(elixir-mode heex-ts-mode))
+    (when (executable-find "mix")
+      (shell-command (format "mix format %s" (shell-quote-argument buffer-file-name)))
+      (revert-buffer t t t)))
+
+   ;; Python
+   ((member major-mode '(python-mode))
+    (when (executable-find "black")
+      (shell-command (format "black %s" (shell-quote-argument buffer-file-name)))
+      (revert-buffer t t t)))
+
+   ;; Dart
+   ((member major-mode '(dart-mode))
+    (when (executable-find "dart")
+      (shell-command (format "dart format %s" (shell-quote-argument buffer-file-name)))
+      (revert-buffer t t t)))
+
+   ;; Rust or fallback to eglot
+   (t
+    (when (and (bound-and-true-p eglot-managed-mode)
+               (eglot--capability :documentFormattingProvider))
+      (eglot-format-buffer)))))
+
+  ;; Enable it globally
+  (add-hook 'before-save-hook #'my/format-buffer-smart)
+#+end_src
 * LaTex
 #+begin_src emacs-lisp
   (use-package auctex
@@ -986,13 +1038,12 @@
   (setq lsp-log-io nil)
 
   (use-package yasnippet
-    :hook ((php-mode . yas-minor-mode)
-           (js2-mode . yas-minor-mode)
-           (rjsx-mode . yas-minor-mode)
-           (elixir-mode . yas-minor-mode)
-           )
+    :hook (prog-mode . yas-minor-mode)
     :config
     (yas-global-mode 1))
+  
+  (use-package yasnippet-snippets
+  :after yasnippet)
 
   ;; (straight-use-package 'editorconfig)
   (use-package editorconfig
