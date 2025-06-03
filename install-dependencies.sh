@@ -56,10 +56,9 @@ rm -rf source-code-pro.zip source-code-pro-release
 # Install language-specific dependencies
 echo "Installing Python dependencies..."
 sudo apt install -y python3 python3-pip
-pip3 install --user pyright black
+pip3 install --user pyright black --break-system-packages
 
 echo "Installing Node.js and related tools..."
-curl -fsSL https://deb.nodesource.com/setup_20.x | sudo -E bash -
 sudo apt install -y nodejs
 sudo npm install -g prettier \
     typescript-language-server \
@@ -69,16 +68,16 @@ sudo npm install -g prettier \
 echo "Installing Elixir and language server..."
 sudo apt install -y elixir
 # Install elixir-ls (Elixir Language Server)
-git clone https://github.com/elixir-ls/elixir-ls.git ~/.elixir-ls
+git clone git@github.com:elixir-lsp/elixir-ls.git ~/.elixir-ls
 cd ~/.elixir-ls
 mix deps.get
 mix compile
-mix elixir_ls.release -o release
+mix elixir_ls.release2 -o release
 cd -
 
 echo "Installing Go and gopls..."
 sudo apt install -y golang
-go install golang.org/x/tools/gopls@latest
+# go install golang.org/x/tools/gopls@latest
 
 echo "Installing Dart..."
 sudo apt install -y apt-transport-https
@@ -90,7 +89,7 @@ sudo apt install -y dart
 echo "Installing PHP dependencies..."
 sudo apt install -y php-cli
 # Install pint for PHP formatting
-curl -sSL https://github.com/laravel/pint/releases/latest/download/pint.phar -o /usr/local/bin/pint
+sudo curl -sSL https://github.com/laravel/pint/releases/latest/download/pint.phar -o /usr/local/bin/pint
 sudo chmod +x /usr/local/bin/pint
 
 echo "Installing LaTeX dependencies..."
