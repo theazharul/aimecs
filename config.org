@@ -27,13 +27,14 @@
   - [[#syntax-checking][Syntax checking]]
   - [[#prettier][Prettier]]
   - [[#web-mode][Web mode]]
+  - [[#js][JS]]
   - [[#python][Python]]
   - [[#elixir][Elixir]]
   - [[#dart][Dart]]
-  - [[#js][JS]]
   - [[#php][PHP]]
   - [[#po][PO]]
 - [[#code-format][Code Format]]
+- [[#code-folding][Code Folding]]
 - [[#latex][LaTex]]
 - [[#pdf][Pdf]]
 - [[#hydra][Hydra]]
@@ -95,9 +96,11 @@
       "c" 'org-capture
       "t" 'org-todo))
 
-  (use-package org-superstar
-    :ensure t
-    :hook (org-mode . org-superstar-mode))
+  (use-package evil-matchit
+    :after evil
+    :config
+    (global-evil-matchit-mode 1))
+
 
   (use-package evil-visualstar
     :ensure t
@@ -197,6 +200,7 @@
       :keymaps 'override
       :prefix "SPC"
       :global-prefix "C-SPC"))
+
 
   (use-package which-key
     :config
@@ -445,6 +449,10 @@
     (require 'evil-org-agenda)
     (evil-org-agenda-set-keys)
     (evil-org-set-key-theme '(textobjects insert navigation additional shift todo heading)))
+
+  (use-package org-superstar
+    :ensure t
+    :hook (org-mode . org-superstar-mode))
 
   (use-package toc-org
     :commands toc-org-enable
@@ -749,7 +757,7 @@
 #+begin_src emacs-lisp
   ;; Ensure web-mode is installed
   (use-package web-mode
-    :mode ("\\.html?\\'" "\\.css\\'" "\\.js\\'" "\\.jsx\\'" "\\.ts\\'" "\\.tsx\\'" "\\.php\\'")
+    :mode ("\\.html?\\'" "\\.css\\'")
     :hook
     ((web-mode . eglot-ensure) ;; Ensure eglot LSP support for web-mode
      (web-mode . emmet-mode)   ;; Enable Emmet mode
@@ -786,7 +794,38 @@
     (setq emmet-expand-jsx-className? t) ;; Use `className` for JSX instead of `class`
     (setq emmet-indent-after-expansion nil)) ;; Disable extra indentation after expansion
 #+end_src
+** JS
+#+begin_src emacs-lisp
+  ;; Use the new modes for JavaScript, JSX, and TypeScript
+  (use-package typescript-ts-mode
+    :mode "\\.ts\\'"
+    :hook (typescript-ts-mode . eglot-ensure))
 
+  ;; Associate extensions with correct major modes
+  (setq auto-mode-alist
+        (append
+         '(("\\.js\\'" . js-ts-mode)
+           ("\\.jsx\\'" . tsx-ts-mode)  
+           ("\\.ts\\'" . typescript-ts-mode)
+           ("\\.tsx\\'" . tsx-ts-mode))
+         auto-mode-alist))
+
+  ;; Enable yasnippet in all relevant modes
+  (dolist (hook '(tsx-ts-mode-hook
+                  typescript-ts-mode-hook
+                  js-ts-mode-hook))
+    (add-hook hook #'yas-minor-mode))
+
+  ;; Treesit Folding
+  (add-hook 'tsx-ts-mode-hook #'hs-minor-mode)
+  (add-hook 'js-ts-mode-hook #'hs-minor-mode)
+
+  ;; Smart display of folding tag
+  (setq hs-set-up-overlay
+        (lambda (ov)
+  	(when (eq 'code (overlay-get ov 'hs))
+            (overlay-put ov 'display (propertize " [...] " 'face 'font-lock-comment-face)))))
+#+end_src
 
 ** Python
 #+begin_src emacs-lisp
@@ -839,41 +878,6 @@
 
 #+end_src
 
-** JS
-#+begin_src emacs-lisp
-  ;; Use the new modes for JavaScript, JSX, and TypeScript
-  (use-package typescript-ts-mode
-    :mode "\\.ts\\'"
-    :hook (typescript-ts-mode . eglot-ensure))
-
-  ;; Associate extensions with correct major modes
-  (setq auto-mode-alist
-        (append
-         '(("\\.js\\'" . js-ts-mode)
-           ("\\.jsx\\'" . js-ts-mode)  ;; `js-ts-mode` handles JSX well
-           ("\\.ts\\'" . typescript-ts-mode)
-           ("\\.tsx\\'" . tsx-ts-mode))
-         auto-mode-alist))
-
-  ;; Enable yasnippet in all relevant modes
-  (dolist (hook '(tsx-ts-mode-hook
-                  typescript-ts-mode-hook
-                  js-ts-mode-hook))
-    (add-hook hook #'yas-minor-mode))
-
-  ;; ;; Run Prettier on save in js-ts-mode
-  ;; (add-hook 'js-ts-mode-hook
-  ;;           (lambda ()
-  ;;             (when (executable-find "prettier")
-  ;;               (add-hook 'before-save-hook #'prettier-format-buffer nil t))))
-
-  ;; (add-hook 'tsx-ts-mode-hook
-  ;;           (lambda ()
-  ;;             (when (executable-find "prettier")
-  ;;               (add-hook 'before-save-hook #'prettier-format-buffer nil t))))
-
-#+end_src
-
 ** PHP
 #+begin_src emacs-lisp
   (use-package php-mode
@@ -897,9 +901,7 @@
     :config
     (setq po-auto-edit-mode t          ; Automatically enable editing mode
           po-developer-mode t))        ; Enable developer mode for additional features
-
 #+end_src
-
 * Code Format 
 #+begin_src emacs-lisp
   (defun my/format-buffer-smart ()
@@ -1019,6 +1021,38 @@
 
   ;; ;; Enable globally
   ;; (add-hook 'before-save-hook #'my/format-buffer-smart)
+#+end_src
+* Code Folding
+#+begin_src emacs-lisp
+  ;; string functions used by origami-parsers
+  (use-package s)
+
+  (use-package origami
+    :hook ((tsx-ts-mode js-ts-mode web-mode) . origami-mode)
+    :config
+    (general-define-key
+     :states 'normal
+     :keymaps 'origami-mode-map
+     "za" 'origami-toggle-node
+     "zR" 'origami-open-all-nodes
+     "zM" 'origami-close-all-nodes))
+
+  ;; Enable hs-minor-mode for tree-sitter modes
+  (dolist (hook '(typescript-ts-mode-hook
+  		html-mode-hook
+  		emacs-lisp-mode-hook
+  		python-mode-hook
+  		c-mode-hook
+  		c++-mode-hook))
+    (add-hook hook #'hs-minor-mode))
+
+  ;; Define folding keys for modes using hs-minor-mode
+  (general-define-key
+   :states 'normal
+   :keymaps 'hs-minor-mode-map
+   "za" 'hs-toggle-hiding
+   "zR" 'hs-show-all
+   "zM" 'hs-hide-all)
 #+end_src
 * LaTex
 #+begin_src emacs-lisp
