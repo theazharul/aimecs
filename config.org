@@ -917,11 +917,15 @@
           (call-process-region (point-min) (point-max)
                                "prettier" t t nil
                                "--stdin-filepath" (or buffer-file-name ""))))
+       
        ;; PHP
-       ((member major-mode '(php-mode))
-        (when (executable-find "pint")
-  	(shell-command (format "pint %s" (shell-quote-argument buffer-file-name)))
-  	(revert-buffer t t t)))
+       ((eq major-mode 'php-mode)
+        (when (and buffer-file-name (executable-find "pint"))
+  	(let ((pint-exit-code (call-process "pint" nil "*Pint Output*" nil buffer-file-name)))
+  	  (when (zerop pint-exit-code)
+  	    ;; Reload only if Pint changed the file on disk
+  	    (when (not (verify-visited-file-modtime (current-buffer)))
+                (revert-buffer :ignore-auto :noconfirm :preserve-modes))))))
 
        ;; Elixir
        ((member major-mode '(elixir-mode heex-ts-mode))
@@ -962,65 +966,6 @@
       (set-window-start (selected-window) win-start)))
 
   (add-hook 'before-save-hook #'my/format-buffer-smart)
-
-
-  ;; (defun my/format-buffer-smart ()
-  ;;   "Format buffer on save using appropriate tool per language, preserving point."
-  ;;   (interactive)
-  ;;   (let ((pos (point))
-  ;; 	(win-start (window-start)))
-  ;;     (cond
-  ;;      ;; JavaScript / HTML / CSS / JSON
-  ;;      ((member major-mode '(js-mode js-ts-mode js2-mode typescript-mode tsx-ts-mode
-  ;;                                    json-mode css-mode html-mode web-mode))
-  ;;       (when (executable-find "prettier")
-  ;; 	(call-process-region (point-min) (point-max)
-  ;;                              "prettier" t t nil
-  ;;                              "--stdin-filepath" (or buffer-file-name ""))))
-
-  ;;      ;; PHP
-  ;;      ((eq major-mode 'php-mode)
-  ;;       (when (executable-find "pint")
-  ;; 	(shell-command (format "pint %s" (shell-quote-argument buffer-file-name)))
-  ;; 	(revert-buffer t t t)))
-
-  ;;      ;; Elixir
-  ;;      ((member major-mode '(elixir-mode heex-ts-mode))
-  ;;       (when (executable-find "mix")
-  ;; 	(shell-command (format "mix format %s" (shell-quote-argument buffer-file-name)))
-  ;; 	(revert-buffer t t t)))
-
-  ;;      ;; Python
-  ;;      ((eq major-mode 'python-mode)
-  ;;       (when (executable-find "black")
-  ;; 	(shell-command (format "black %s" (shell-quote-argument buffer-file-name)))
-  ;; 	(revert-buffer t t t)))
-
-  ;;      ;; Dart
-  ;;      ((eq major-mode 'dart-mode)
-  ;;       (when (executable-find "dart")
-  ;; 	(shell-command (format "dart format %s" (shell-quote-argument buffer-file-name)))
-  ;; 	(revert-buffer t t t)))
-
-  ;;      ;; Rust or fallback to eglot
-  ;;      ((and (bound-and-true-p eglot-managed-mode)
-  ;;            (eglot--capability :documentFormattingProvider))
-  ;;       (eglot-format-buffer))
-
-  ;;      ;; Emacs Lisp
-  ;;      ((eq major-mode 'emacs-lisp-mode)
-  ;;       (indent-region (point-min) (point-max)))
-
-  ;;      ;; Org Mode
-  ;;      ((eq major-mode 'org-mode)
-  ;;       (org-indent-region (point-min) (point-max))))
-
-  ;;     ;; Restore point and scroll
-  ;;     (goto-char (min pos (point-max)))
-  ;;     (set-window-start (selected-window) win-start)))
-
-  ;; ;; Enable globally
-  ;; (add-hook 'before-save-hook #'my/format-buffer-smart)
 #+end_src
 * Code Folding
 #+begin_src emacs-lisp
