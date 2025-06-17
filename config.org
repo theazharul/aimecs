@@ -963,7 +963,9 @@
 
       ;; Restore point and scroll
       (goto-char (min pos (point-max)))
-      (set-window-start (selected-window) win-start)))
+      (set-window-start (selected-window) win-start)
+      (font-lock-ensure)
+      ))
 
   (add-hook 'before-save-hook #'my/format-buffer-smart)
 #+end_src
