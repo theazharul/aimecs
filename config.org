@@ -904,70 +904,100 @@
 #+end_src
 * Code Format 
 #+begin_src emacs-lisp
-  (defun my/format-buffer-smart ()
-    "Format buffer on save using appropriate tool per language, preserving point."
-    (interactive)
+  (defvar my/file-formatters
+    '((php-mode . ("pint" . file))
+      (elixir-mode . ("mix" . file))
+      (heex-ts-mode . ("mix" . file))
+      (python-mode . ("black" . file))
+      (dart-mode . ("dart" . file)))
+    "Alist of major modes to their formatters and types.
+  Format: (mode . (command . type))
+  Types: 'file (formats file on disk), 'buffer (formats buffer content)")
+
+  (defvar my/buffer-formatters
+    '((js-mode js-ts-mode js2-mode typescript-mode tsx-ts-mode
+               json-mode css-mode html-mode web-mode) . ("prettier" "--stdin-filepath"))
+    "Alist of major mode groups to buffer formatters with their arguments.")
+
+  (defun my/preserve-point-and-window (func)
+    "Execute FUNC while preserving point position and window scroll."
     (let ((pos (point))
           (win-start (window-start)))
-      (cond
-       ;; JavaScript / HTML / CSS / JSON
-       ((member major-mode '(js-mode js-ts-mode js2-mode typescript-mode tsx-ts-mode
-                                     json-mode css-mode html-mode web-mode))
-        (when (executable-find "prettier")
-          (call-process-region (point-min) (point-max)
-                               "prettier" t t nil
-                               "--stdin-filepath" (or buffer-file-name ""))))
-       
-       ;; PHP
-       ((eq major-mode 'php-mode)
-        (when (and buffer-file-name (executable-find "pint"))
-  	(let ((pint-exit-code (call-process "pint" nil "*Pint Output*" nil buffer-file-name)))
-  	  (when (zerop pint-exit-code)
-  	    ;; Reload only if Pint changed the file on disk
-  	    (when (not (verify-visited-file-modtime (current-buffer)))
-                (revert-buffer :ignore-auto :noconfirm :preserve-modes))))))
-
-       ;; Elixir
-       ((member major-mode '(elixir-mode heex-ts-mode))
-        (when (executable-find "mix")
-          (shell-command (format "mix format %s"
-                                 (shell-quote-argument buffer-file-name)))
-          (revert-buffer t t t)))
-
-       ;; Python
-       ((eq major-mode 'python-mode)
-        (when (executable-find "black")
-          (shell-command (format "black %s"
-                                 (shell-quote-argument buffer-file-name)))
-          (revert-buffer t t t)))
-
-       ;; Dart
-       ((eq major-mode 'dart-mode)
-        (when (executable-find "dart")
-          (shell-command (format "dart format %s"
-                                 (shell-quote-argument buffer-file-name)))
-          (revert-buffer t t t)))
-
-       ;; Rust via eglot
-       ((and (bound-and-true-p eglot-managed-mode)
-             (eglot--capability :documentFormattingProvider))
-        (eglot-format-buffer))
-
-       ;; Emacs Lisp
-       ((eq major-mode 'emacs-lisp-mode)
-        (indent-region (point-min) (point-max)))
-
-       ;; Org Mode
-       ((eq major-mode 'org-mode)
-        (org-indent-region (point-min) (point-max))))
-
-      ;; Restore point and scroll
+      (funcall func)
       (goto-char (min pos (point-max)))
       (set-window-start (selected-window) win-start)
-      (font-lock-ensure)
-      ))
+      (font-lock-ensure)))
 
+  (defun my/format-with-prettier ()
+    "Format buffer content using Prettier."
+    (when (executable-find "prettier")
+      (call-process-region (point-min) (point-max)
+                           "prettier" t t nil
+                           "--stdin-filepath" (or buffer-file-name ""))))
+
+  (defun my/format-file-on-disk (command &optional args)
+    "Format current file on disk using COMMAND with optional ARGS."
+    (when (and buffer-file-name (executable-find command))
+      (let* ((cmd-args (if args (list args buffer-file-name) (list buffer-file-name)))
+             (full-command (cond
+                            ((string= command "mix") (format "mix format %s" (shell-quote-argument buffer-file-name)))
+                            ((string= command "black") (format "black %s" (shell-quote-argument buffer-file-name)))
+                            ((string= command "dart") (format "dart format %s" (shell-quote-argument buffer-file-name)))
+                            ((string= command "pint") nil)))) ; Pint handled separately
+        (cond
+         ((string= command "pint")
+          ;; Handle Pint in after-save-hook
+          nil)
+         (full-command
+          (shell-command full-command)
+          (revert-buffer t t t))))))
+
+  (defun my/format-buffer-smart ()
+    "Format buffer on save using appropriate tool per language."
+    (interactive)
+    (my/preserve-point-and-window
+     (lambda ()
+       (cond
+        ;; Buffer-based formatters (Prettier)
+        ((cl-some (lambda (mode-group)
+                    (member major-mode (car mode-group)))
+                  (list my/buffer-formatters))
+         (my/format-with-prettier))
+        
+        ;; File-based formatters (except PHP/Pint)
+        ((and (assq major-mode my/file-formatters)
+              (not (eq major-mode 'php-mode)))
+         (let* ((formatter-info (cdr (assq major-mode my/file-formatters)))
+                (command (car formatter-info)))
+           (my/format-file-on-disk command)))
+        
+        ;; Language Server Protocol formatting
+        ((and (bound-and-true-p eglot-managed-mode)
+              (eglot--capability :documentFormattingProvider))
+         (eglot-format-buffer))
+        
+        ;; Built-in Emacs formatting
+        ((eq major-mode 'emacs-lisp-mode)
+         (indent-region (point-min) (point-max)))
+        
+        ((eq major-mode 'org-mode)
+         (org-indent-region (point-min) (point-max)))))))
+
+  (defun my/php-format-after-save ()
+    "Format PHP file with Pint after saving."
+    (when (and (eq major-mode 'php-mode)
+               buffer-file-name
+               (executable-find "pint"))
+      (my/preserve-point-and-window
+       (lambda ()
+         (let ((pint-exit-code (call-process "pint" nil "*Pint Output*" nil buffer-file-name)))
+           (when (and (zerop pint-exit-code)
+                      (not (verify-visited-file-modtime (current-buffer))))
+             (revert-buffer :ignore-auto :noconfirm :preserve-modes)))))))
+
+  ;; Setup hooks
   (add-hook 'before-save-hook #'my/format-buffer-smart)
+  (add-hook 'after-save-hook #'my/php-format-after-save)
 #+end_src
 * Code Folding
 #+begin_src emacs-lisp
